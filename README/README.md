@@ -11,6 +11,7 @@ Connecting e46 320D gauge to beamng drive
 6. [Photos](#Photos)
 7. [Notes](#Notes)
 8. [CAN Frames](#CAN_Frames)
+9. [Qt App](#Qt_App)
 ---
 
 ## Schematic
@@ -29,6 +30,7 @@ Connecting e46 320D gauge to beamng drive
 - [e46 cluster controlled by stm32f4 via CAN bus](https://www.youtube.com/watch?v=_p4o54ZFcKQ&t=15s)
 - [STM bluepill controling repo](https://github.com/chesapeakemotorwerks/bluepill_e46)
 - [MS4x.net](https://www.ms4x.net/index.php?title=Main_Page)
+- [KBUS ninja forum](https://curious.ninja/project/bmw-e46/e46-k-bus/arduino-bmw-i-bus-interface-technical-details/)
 
 
 ---
@@ -259,3 +261,7 @@ Connecting e46 320D gauge to beamng drive
 | 0    | State Tire Pressure (MSS54 only) | **Tire Pressure Status** |
 | 1-6  | Unused                        | - |
 | 7    | Status Engine Oil Pressure Low | **Engine Oil Pressure Warning** |
+
+## Qt App
+
+- QML Qt Modelin Language - it is used for generating code for GUI 
