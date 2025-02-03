@@ -23,8 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Byte array converted to QByteArray
     QByteArray payload(reinterpret_cast<const char*>(data), sizeof(data));
 
-    frame1Data = payload;
-    frame2Data = payload;
+    frame316Data = payload;
+    frame329Data = payload;
     frame545Data = payload;
 
     // Connect
@@ -94,15 +94,15 @@ void MainWindow::sendCanMessage10ms()
         return;
     }
 
-    QCanBusFrame frame1;
-    frame1.setFrameId(0x316);
-    frame1.setPayload(frame1Data);
-    device->writeFrame(frame1);
+    QCanBusFrame frame316;
+    frame316.setFrameId(0x316);
+    frame316.setPayload(frame316Data);
+    device->writeFrame(frame316);
 
-    QCanBusFrame frame2;
-    frame2.setFrameId(0x329);
-    frame2.setPayload(frame2Data);
-    device->writeFrame(frame2);
+    QCanBusFrame frame329;
+    frame329.setFrameId(0x329);
+    frame329.setPayload(frame329Data);
+    device->writeFrame(frame329);
 
     QCanBusFrame frame545;
     frame545.setFrameId(0x545);
@@ -124,33 +124,95 @@ void MainWindow::on_textEditLog_copyAvailable(bool b)
 }
 
 
-
 void MainWindow::on_pushButtonEngineCheck_toggled(bool checked)
 {
-    if(checked)
-    {    const uint8_t data[] = {0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    modifyCanFrameBit(frame545Data, 0, 1, checked);
+}
 
-        // Byte array converted to QByteArray
-        QByteArray payload(reinterpret_cast<const char*>(data), sizeof(data));
+void MainWindow::on_pushButtonDDE_toggled(bool checked)
+{
+    modifyCanFrameBit(frame545Data, 0, 4, checked);
+}
 
-        // Frame 545 load
-        frame545Data = payload;
+void MainWindow::on_pushButtonCruise_toggled(bool checked)
+{
+    modifyCanFrameBit(frame545Data, 0, 3, checked);
+}
 
-        // print in log
-        ui->textEditLog->append("Frame 545 modified: " + frame545Data.toHex());
-    }
+void MainWindow::on_pushButtonFuelCap_toggled(bool checked)
+{
+    modifyCanFrameBit(frame545Data, 0, 6, checked);
+}
+
+
+void MainWindow::modifyCanFrameBit(QByteArray &frame, uint8_t byteIndex, uint8_t bit, bool state)
+{
+    if (byteIndex >= frame.size())  // Sprawdzenie, czy bajt mieści się w ramce
+        return;
+
+    if (state)
+        frame[byteIndex] |= (1 << bit);  // Ustawienie bitu
     else
-    {    const uint8_t data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        frame[byteIndex] &= ~(1 << bit); // Wyczyszczenie bitu
 
-        // Byte array converted to QByteArray
-        QByteArray payload(reinterpret_cast<const char*>(data), sizeof(data));
+    // Wypisanie zmodyfikowanej ramki w logu
+    ui->textEditLog->append("Frame modified: " + frame.toHex());
+}
 
-        // Frame 545 load
-        frame545Data = payload;
+void MainWindow::modifyCanFrameByte(QByteArray &frame, uint8_t byteIndex, uint8_t value)
+{
+    if (byteIndex >= frame.size())
+        return;
 
-        // print in log
-        ui->textEditLog->append("Frame 545 modified: " + frame545Data.toHex());
-    }
+    frame[byteIndex] = value; // Nadpisanie całego bajtu
 
+    ui->textEditLog->append("Frame modified: " + frame.toHex());
+}
+
+
+
+void MainWindow::on_horizontalSliderFuel_valueChanged(int value)
+{
+    ui->labelFuelLevel->setText(QString("Fuel Level: %1%").arg(value));
+}
+
+
+void MainWindow::on_horizontalSliderCoolantTemp_valueChanged(int value)
+{
+    double temperature = (value * 0.75) - 48.0;
+
+    ui->labelCoolantTemp->setText(QString("Temp: %1 °C").arg(temperature, 0, 'f', 1));
+
+    modifyCanFrameByte(frame329Data, 1, value);
+}
+
+
+void MainWindow::on_horizontalSliderSpeed_valueChanged(int value)
+{
+
+}
+
+
+void MainWindow::on_horizontalSliderRPM_valueChanged(int value)
+{
+    modifyCanFrameBit(frame316Data, 0, 0, true);
+    modifyCanFrameBit(frame316Data, 0, 1, false);
+    modifyCanFrameBit(frame316Data, 0, 2, true);
+    modifyCanFrameBit(frame316Data, 0, 3, true);
+    modifyCanFrameBit(frame316Data, 0, 4, false);
+    modifyCanFrameBit(frame316Data, 0, 5, false);
+    modifyCanFrameBit(frame316Data, 0, 6, false);
+    modifyCanFrameBit(frame316Data, 0, 7, false);
+
+    int rpm = value;
+    ui->labelRPM->setText(QString("RPM: %1").arg(rpm));
+
+    // RPM to HEX (MSB + LSB)
+    uint16_t hexValue = static_cast<uint16_t>(rpm / 0.15625);
+    uint8_t lsb = hexValue & 0xFF;
+    uint8_t msb = (hexValue >> 8) & 0xFF;
+
+    modifyCanFrameByte(frame316Data, 2, lsb);
+    modifyCanFrameByte(frame316Data, 3, msb);
 }
 

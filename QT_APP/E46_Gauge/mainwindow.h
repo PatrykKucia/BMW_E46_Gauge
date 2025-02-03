@@ -37,6 +37,29 @@ private slots:
 
     void on_pushButtonEngineCheck_toggled(bool checked);
 
+    void on_pushButtonDDE_clicked();
+
+    void on_pushButtonDDE_toggled(bool checked);
+
+    void modifyCanFrameBit(QByteArray &frame, uint8_t byteIndex, uint8_t bit, bool state);
+    void modifyCanFrameByte(QByteArray &frame, uint8_t byteIndex, uint8_t value);
+
+    void on_pushButtonCruise_toggled(bool checked);
+
+    void on_pushButton_toggled(bool checked);
+
+    void on_pushButtonFuelCap_toggled(bool checked);
+
+    void on_horizontalSlider_valueChanged(int value);
+
+    void on_horizontalSliderFuel_valueChanged(int value);
+
+    void on_horizontalSliderCoolantTemp_valueChanged(int value);
+
+    void on_horizontalSliderSpeed_valueChanged(int value);
+
+    void on_horizontalSliderRPM_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
     QCanBusDevice *device = nullptr;  // CAN device pointer
@@ -46,8 +69,8 @@ private:
     bool isSending = false; // CAN sending flag
 
     // Data frames
-    QByteArray frame1Data;
-    QByteArray frame2Data;
+    QByteArray frame316Data;
+    QByteArray frame329Data;
     QByteArray frame545Data;
 };
 #endif // MAINWINDOW_H
