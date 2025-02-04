@@ -31,6 +31,7 @@ Connecting e46 320D gauge to beamng drive
 - [STM bluepill controling repo](https://github.com/chesapeakemotorwerks/bluepill_e46)
 - [MS4x.net](https://www.ms4x.net/index.php?title=Main_Page)
 - [KBUS ninja forum](https://curious.ninja/project/bmw-e46/e46-k-bus/arduino-bmw-i-bus-interface-technical-details/)
+- [OutGauge UDP protocol](https://documentation.beamng.com/modding/protocols/)
 
 
 ---
@@ -57,6 +58,8 @@ Connecting e46 320D gauge to beamng drive
 
 - Washer fluid level is off (after a while) when shorted to GND with 2.2k resistor.
 - 10ms SENDING SPEED!!!! for 0x316 and 0x545 and 0x329, 1000ms and at signal change for 0x338
+- speed - frequency - 100Hz = 0km/h, 1770kHz for 255km/h
+- OutGauge UDP protocol in beam ng drive
 
 ## CAN Frames
 
@@ -266,3 +269,6 @@ Connecting e46 320D gauge to beamng drive
 
 - QML Qt Modelin Language - it is used for generating code for GUI 
 ![alt text](image-3.png)
+
+-#pragma pack(push, 1) - sets the alignment of structure members to 1 byte, which means that the compiler does not add any additional bytes (padding) between structure fields.
+-#pragma pack(pop) - restores the default alignment of structure members.

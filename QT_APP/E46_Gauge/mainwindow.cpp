@@ -5,6 +5,53 @@
 
 #include <QDebug>
 #include <QCanBus>
+#include <QUdpSocket>
+
+#pragma pack(push, 1) // Zapewnia brak optymalizacji struktury (ważne dla odbioru pakietów UDP)
+struct TelemetryData {
+    unsigned       time;
+    char           car[4];
+    unsigned short flags;
+    char           gear;
+    char           plid;
+    float          speed;
+    float          rpm;
+    float          turbo;
+    float          engTemp;
+    float          fuel;
+    float          oilPressure;
+    float          oilTemp;
+    unsigned       dashLights;
+    unsigned       showLights;
+    float          throttle;
+    float          brake;
+    float          clutch;
+    char           display1[16];
+    char           display2[16];
+    int            id;
+};
+#pragma pack(pop)
+
+// OG_x - Bity dla flags
+#define OG_SHIFT    (1 << 0)   // Klawisz SHIFT
+#define OG_CTRL     (1 << 1)   // Klawisz CTRL
+#define OG_TURBO    (1 << 13)  // Wskaźnik turbo
+#define OG_KM       (1 << 14)  // Jeśli nie ustawione - preferuje MILE
+#define OG_BAR      (1 << 15)  // Jeśli nie ustawione - preferuje PSI
+
+// DL_x - Bity dla dashLights i showLights
+#define DL_SHIFT        (1 << 0)  // Shift light
+#define DL_FULLBEAM     (1 << 1)  // Światła drogowe
+#define DL_HANDBRAKE    (1 << 2)  // Hamulec ręczny
+#define DL_PITSPEED     (1 << 3)  // Ogranicznik prędkości pit (N/A)
+#define DL_TC           (1 << 4)  // Kontrola trakcji
+#define DL_SIGNAL_L     (1 << 5)  // Kierunkowskaz lewy
+#define DL_SIGNAL_R     (1 << 6)  // Kierunkowskaz prawy
+#define DL_SIGNAL_ANY   (1 << 7)  // Kierunkowskaz ogólny (N/A)
+#define DL_OILWARN      (1 << 8)  // Ostrzeżenie o niskim ciśnieniu oleju
+#define DL_BATTERY      (1 << 9)  // Ostrzeżenie o akumulatorze
+#define DL_ABS          (1 << 10) // ABS aktywny lub wyłączony
+#define DL_SPARE        (1 << 11) // N/A
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -31,6 +78,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(timer10ms, &QTimer::timeout, this, &MainWindow::sendCanMessage10ms);
     connect(timer1000ms, &QTimer::timeout, this, &MainWindow::sendCanMessage1000ms);
+
+    // Inicjalizacja gniazda UDP
+    udpSocket = new QUdpSocket(this);
+    udpSocket->bind(QHostAddress::Any, 4444);  // Port 4444, akceptujemy wszystkie adresy
+
+    connect(udpSocket, &QUdpSocket::readyRead, this, &MainWindow::readPendingUdpDatagrams);
 }
 
 MainWindow::~MainWindow()
@@ -212,7 +265,98 @@ void MainWindow::on_horizontalSliderRPM_valueChanged(int value)
     uint8_t lsb = hexValue & 0xFF;
     uint8_t msb = (hexValue >> 8) & 0xFF;
 
+   // modifyCanFrameByte(frame316Data, 2, lsb);
+   // modifyCanFrameByte(frame316Data, 3, msb);
+}
+
+void MainWindow::readPendingUdpDatagrams()
+{
+    while (udpSocket->hasPendingDatagrams()) {
+        QByteArray datagram;
+        datagram.resize(udpSocket->pendingDatagramSize());
+        udpSocket->readDatagram(datagram.data(), datagram.size());
+
+        // Przetwarzanie otrzymanych danych
+        processUdpData(datagram);
+    }
+}
+
+void MainWindow::processUdpData(QByteArray &datagram)
+{
+    if (datagram.size() != sizeof(TelemetryData)) {
+        qDebug() << "Otrzymano błędny pakiet UDP, rozmiar: " << datagram.size();
+        return;
+    }
+
+    // Konwersja QByteArray na strukturę TelemetryData
+    TelemetryData telemetry;
+    memcpy(&telemetry, datagram.data(), sizeof(TelemetryData));
+
+    // Debug - wypisanie odebranych wartości
+    qDebug() << "Speed: " << telemetry.speed << " m/s";
+    qDebug() << "RPM: " << telemetry.rpm;
+    qDebug() << "Throttle: " << telemetry.throttle;
+    qDebug() << "Brake: " << telemetry.brake;
+    qDebug() << "Clutch: " << telemetry.clutch;
+
+    // Możesz zaktualizować UI, np. ustawić wskaźniki na podstawie wartości
+    ui->labelSpeed->setText(QString("Speed: %1 m/s").arg(telemetry.speed));
+    ui->labelRPM->setText(QString("RPM: %1").arg(telemetry.rpm));
+
+    uint16_t hexValue = static_cast<uint16_t>(telemetry.rpm / 0.15625);
+    uint8_t lsb = hexValue & 0xFF;
+    uint8_t msb = (hexValue >> 8) & 0xFF;
+
     modifyCanFrameByte(frame316Data, 2, lsb);
     modifyCanFrameByte(frame316Data, 3, msb);
+
+
+    // Przykłady obsługi flag i świateł
+    bool isTurboActive = telemetry.flags & OG_TURBO;
+    bool isMetric = telemetry.flags & OG_KM;
+    bool prefersBar = telemetry.flags & OG_BAR;
+
+    bool isShiftLightOn = telemetry.dashLights & DL_SHIFT;
+    bool isHandbrakeOn = telemetry.dashLights & DL_HANDBRAKE;
+    bool isABSActive = telemetry.dashLights & DL_ABS;
+    bool isOilWarning = telemetry.dashLights & DL_OILWARN;
+    bool isLeftSignal = telemetry.showLights & DL_SIGNAL_L;
+    bool isRightSignal = telemetry.showLights & DL_SIGNAL_R;
+
+    // Debug - wypisanie wartości
+    qDebug() << "Turbo Aktywne:" << isTurboActive;
+    qDebug() << "Preferuje km/h:" << isMetric;
+    qDebug() << "Preferuje BAR:" << prefersBar;
+    qDebug() << "Shift Light On:" << isShiftLightOn;
+    qDebug() << "Handbrake On:" << isHandbrakeOn;
+    qDebug() << "ABS Active:" << isABSActive;
+    qDebug() << "Oil Warning:" << isOilWarning;
+    qDebug() << "Left Signal:" << isLeftSignal;
+    qDebug() << "Right Signal:" << isRightSignal;
+
+    ui->lcdNumberTime->display(static_cast<int>(telemetry.time));
+    //ui->lcdNumberSpeed->display(static_cast<int>(telemetry.car));
+    ui->lcdNumberGear->display(static_cast<double>(telemetry.gear));
+    ui->lcdNumberSpeed->display(static_cast<double>(telemetry.speed));
+    ui->lcdNumberRPM->display(static_cast<double>(telemetry.rpm));
+    ui->lcdNumberTurbo->display(static_cast<double>(telemetry.turbo));
+    ui->lcdNumberEnginetemp->display(static_cast<double>(telemetry.engTemp));
+    ui->lcdNumberFuel->display(static_cast<double>(telemetry.fuel));
+    ui->lcdNumberOilPresure->display(static_cast<double>(telemetry.oilPressure));
+    ui->lcdNumberOilTemp->display(static_cast<double>(telemetry.oilTemp));
+    ui->lcdNumberDashlights->display(static_cast<double>(telemetry.dashLights));
+    ui->lcdNumberShowlights->display(static_cast<double>(telemetry.showLights));
+    ui->lcdNumberThrotrle->display(static_cast<double>(telemetry.throttle));
+    ui->lcdNumberBrake->display(static_cast<double>(telemetry.brake));
+    ui->lcdNumberClutch->display(static_cast<double>(telemetry.clutch));
+
+
+    // Aktualizacja UI
+   // ui->labelTurbo->setText(isTurboActive ? "Turbo: ON" : "Turbo: OFF");
+   // ui->labelSpeed->setText(QString("Speed: %1 %2").arg(telemetry.speed).arg(isMetric ? "km/h" : "mph"));
+    //ui->labelHandbrake->setText(isHandbrakeOn ? "Handbrake: ON" : "Handbrake: OFF");
+   // ui->labelABS->setText(isABSActive ? "ABS: ON" : "ABS: OFF");
+   // ui->labelOil->setText(isOilWarning ? "Oil Warning: ON" : "Oil Warning: OFF");
+    //ui->labelTurnSignals->setText(isLeftSignal ? "←" : (isRightSignal ? "→" : "-"));
 }
 

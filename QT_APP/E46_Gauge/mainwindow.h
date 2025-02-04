@@ -8,6 +8,7 @@
 #include <QCanBus>
 #include <QCanBusDevice>
 #include <QTimer>
+#include <QUdpSocket>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -72,5 +73,9 @@ private:
     QByteArray frame316Data;
     QByteArray frame329Data;
     QByteArray frame545Data;
+
+    QUdpSocket *udpSocket;
+    void processUdpData(QByteArray &datagram);
+    void readPendingUdpDatagrams();
 };
 #endif // MAINWINDOW_H
