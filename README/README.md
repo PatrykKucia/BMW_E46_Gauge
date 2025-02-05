@@ -32,6 +32,9 @@ Connecting e46 320D gauge to beamng drive
 - [MS4x.net](https://www.ms4x.net/index.php?title=Main_Page)
 - [KBUS ninja forum](https://curious.ninja/project/bmw-e46/e46-k-bus/arduino-bmw-i-bus-interface-technical-details/)
 - [OutGauge UDP protocol](https://documentation.beamng.com/modding/protocols/)
+- [Qt tutorial forbot](https://forbot.pl/blog/kurs-qt-3-pierwsza-aplikacja-mobilna-na-androida-id35602)
+- [K-Bus repo](https://github.com/piersholt/wilhelm-docs)
+- [K bus arduino](https://www.youtube.com/watch?v=amk5FXwBos8&ab_channel=Chuechco93)
 
 
 ---
@@ -57,6 +60,11 @@ Connecting e46 320D gauge to beamng drive
 ## Notes
 
 - Washer fluid level is off (after a while) when shorted to GND with 2.2k resistor.
+- 2 pin to GND - acumulator loading indicator on 
+- 13 pin to GND - oil level indicator on
+- 20 pin to GND - brake fluid level indicator off
+- 22 pin to GND - ABS off 
+- 24 pin to GND - coolant to low off
 - 10ms SENDING SPEED!!!! for 0x316 and 0x545 and 0x329, 1000ms and at signal change for 0x338
 - speed - frequency - 100Hz = 0km/h, 1770kHz for 255km/h
 - OutGauge UDP protocol in beam ng drive
