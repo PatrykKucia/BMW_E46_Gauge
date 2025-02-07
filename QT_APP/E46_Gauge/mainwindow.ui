@@ -15,29 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="2">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Policy::Expanding</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>490</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="0" column="5">
-     <widget class="QLabel" name="label_22">
-      <property name="text">
-       <string>Data from BeamNG</string>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="5">
      <widget class="QFrame" name="frameNG">
       <property name="sizePolicy">
@@ -53,44 +30,10 @@
        <enum>QFrame::Shadow::Raised</enum>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="4">
-        <widget class="QSplitter" name="splitter_4">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <widget class="QLCDNumber" name="lcdNumber">
-          <property name="segmentStyle">
-           <enum>QLCDNumber::SegmentStyle::Flat</enum>
-          </property>
-         </widget>
-         <widget class="QLCDNumber" name="lcdNumber_2">
-          <property name="segmentStyle">
-           <enum>QLCDNumber::SegmentStyle::Flat</enum>
-          </property>
-         </widget>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QSplitter" name="splitter_2">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QSplitter" name="splitter_3">
+       <item row="0" column="0">
+        <widget class="QSplitter" name="splitter">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -98,30 +41,80 @@
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
          </property>
-         <widget class="QLCDNumber" name="lcdNumberTime">
-          <property name="font">
-           <font>
-            <italic>false</italic>
-           </font>
-          </property>
-          <property name="smallDecimalPoint">
-           <bool>false</bool>
-          </property>
-          <property name="segmentStyle">
-           <enum>QLCDNumber::SegmentStyle::Flat</enum>
+         <widget class="QLabel" name="labelGear">
+          <property name="text">
+           <string>Gear:</string>
           </property>
          </widget>
-         <widget class="QLCDNumber" name="lcdNumberCar">
-          <property name="segmentStyle">
-           <enum>QLCDNumber::SegmentStyle::Flat</enum>
+         <widget class="QLabel" name="labelTurbo">
+          <property name="text">
+           <string>Turbo:</string>
           </property>
          </widget>
+         <widget class="QLabel" name="labelSpeedNG">
+          <property name="text">
+           <string>Speed:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelRpmNG">
+          <property name="text">
+           <string>RPM:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelEngtemp">
+          <property name="text">
+           <string>Engine Temp:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelFuel">
+          <property name="text">
+           <string>Fuel:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelOilTemp">
+          <property name="text">
+           <string>Oil Temperature:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelDashlights">
+          <property name="text">
+           <string>Dash Lights:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelShowlights">
+          <property name="text">
+           <string>Show Lights:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelThrottle">
+          <property name="text">
+           <string>Throttle:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelBrake">
+          <property name="text">
+           <string>Brake:</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelClutch">
+          <property name="text">
+           <string>Clutch:</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSplitter" name="splitter_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
          <widget class="QLCDNumber" name="lcdNumberGear">
-          <property name="segmentStyle">
-           <enum>QLCDNumber::SegmentStyle::Flat</enum>
-          </property>
-         </widget>
-         <widget class="QLCDNumber" name="lcdNumberPlid">
           <property name="segmentStyle">
            <enum>QLCDNumber::SegmentStyle::Flat</enum>
           </property>
@@ -147,11 +140,6 @@
           </property>
          </widget>
          <widget class="QLCDNumber" name="lcdNumberFuel">
-          <property name="segmentStyle">
-           <enum>QLCDNumber::SegmentStyle::Flat</enum>
-          </property>
-         </widget>
-         <widget class="QLCDNumber" name="lcdNumberOilPresure">
           <property name="segmentStyle">
            <enum>QLCDNumber::SegmentStyle::Flat</enum>
           </property>
@@ -188,103 +176,13 @@
          </widget>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QSplitter" name="splitter">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <widget class="QLabel" name="labelTime">
-          <property name="text">
-           <string>Time:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelCar">
-          <property name="text">
-           <string>Car</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelGear">
-          <property name="text">
-           <string>Gear:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelPlid">
-          <property name="text">
-           <string>Player ID:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelTurbo">
-          <property name="text">
-           <string>Turbo:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelSpeedNG">
-          <property name="text">
-           <string>Speed:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelRpmNG">
-          <property name="text">
-           <string>RPM:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelEngtemp">
-          <property name="text">
-           <string>Engine Temp:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelFuel">
-          <property name="text">
-           <string>Fuel:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelOilpres">
-          <property name="text">
-           <string>Oil pressure:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelOilTemp">
-          <property name="text">
-           <string>Oil Temperature:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelDashlights">
-          <property name="text">
-           <string>Dash Lights:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelShowlights">
-          <property name="text">
-           <string>Show Lights:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelThrottle">
-          <property name="text">
-           <string>Throttle:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelBrake">
-          <property name="text">
-           <string>Brake:</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="labelClutch">
-          <property name="text">
-           <string>Clutch:</string>
-          </property>
-         </widget>
-        </widget>
-       </item>
        <item row="0" column="2">
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Policy::Minimum</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -294,7 +192,155 @@
          </property>
         </spacer>
        </item>
+       <item row="0" column="3">
+        <widget class="QSplitter" name="splitter_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <widget class="QLabel" name="labelOGTurbo">
+          <property name="text">
+           <string>OG Turbo</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelOGKM">
+          <property name="text">
+           <string>OG KM</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelOGBAR">
+          <property name="text">
+           <string>OG BAR</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelShiftLight">
+          <property name="text">
+           <string>Shift light</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labeFullBeam">
+          <property name="text">
+           <string>Full Beam</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelHandBrake">
+          <property name="text">
+           <string>Hand brake</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelTractionCtl">
+          <property name="text">
+           <string>Traction controll</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelLeftTurnSignal">
+          <property name="text">
+           <string>Left turn signal</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelRightTurnSignal">
+          <property name="text">
+           <string>Right turn signal</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Oil pressure warnig</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelBatteryWarning">
+          <property name="text">
+           <string>Battery warning</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="labelABS">
+          <property name="text">
+           <string>ABS</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QSplitter" name="splitter_4">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <widget class="QLabel" name="Turbo_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="KM_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="BAR_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="ShiftLight_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="FullBeam_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="HandBrake_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="TractionCtrl_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="LeftTurnSignal_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="RightTurnSignal_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="OilPresureWarning_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="BatteryWarning_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+         <widget class="QLabel" name="ABS_ValueLabel">
+          <property name="text">
+           <string>-</string>
+          </property>
+         </widget>
+        </widget>
+       </item>
       </layout>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="QLabel" name="label_21">
+      <property name="text">
+       <string>Manual controll </string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="5">
+     <widget class="QLabel" name="label_22">
+      <property name="text">
+       <string>Data from BeamNG</string>
+      </property>
      </widget>
     </item>
     <item row="1" column="0" colspan="2">
@@ -449,23 +495,6 @@
       </layout>
      </widget>
     </item>
-    <item row="2" column="5">
-     <widget class="QLabel" name="label_20">
-      <property name="text">
-       <string>Frames</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QTextEdit" name="textEdit"/>
-    </item>
-    <item row="0" column="0" colspan="2">
-     <widget class="QLabel" name="label_21">
-      <property name="text">
-       <string>Manual controll </string>
-      </property>
-     </widget>
-    </item>
     <item row="3" column="5">
      <widget class="QTextEdit" name="textEditLog"/>
     </item>
@@ -473,6 +502,32 @@
      <widget class="QLabel" name="label_19">
       <property name="text">
        <string>Logs</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QTextEdit" name="textEdit"/>
+    </item>
+    <item row="1" column="2">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Orientation::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Policy::Expanding</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>490</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="2" column="5">
+     <widget class="QLabel" name="label_20">
+      <property name="text">
+       <string>Frames</string>
       </property>
      </widget>
     </item>

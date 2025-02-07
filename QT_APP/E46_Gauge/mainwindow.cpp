@@ -316,25 +316,30 @@ void MainWindow::processUdpData(QByteArray &datagram)
     bool isMetric = telemetry.flags & OG_KM;
     bool prefersBar = telemetry.flags & OG_BAR;
 
-    bool isShiftLightOn = telemetry.dashLights & DL_SHIFT;
-    bool isHandbrakeOn = telemetry.dashLights & DL_HANDBRAKE;
-    bool isABSActive = telemetry.dashLights & DL_ABS;
-    bool isOilWarning = telemetry.dashLights & DL_OILWARN;
+    bool isShiftLightOn = telemetry.showLights & DL_SHIFT;
+    bool isFullBeam = telemetry.showLights & DL_FULLBEAM;
+    bool isHandbrakeOn = telemetry.showLights & DL_HANDBRAKE;
+    bool isTractionCtrl = telemetry.showLights & DL_TC;
+    bool isABSActive = telemetry.showLights & DL_ABS;
+    bool isOilWarning = telemetry.showLights & DL_OILWARN;
+    bool isBatteryWarning = telemetry.showLights & DL_BATTERY;
     bool isLeftSignal = telemetry.showLights & DL_SIGNAL_L;
     bool isRightSignal = telemetry.showLights & DL_SIGNAL_R;
 
-    // Debug - wypisanie wartości
-    qDebug() << "Turbo Aktywne:" << isTurboActive;
-    qDebug() << "Preferuje km/h:" << isMetric;
-    qDebug() << "Preferuje BAR:" << prefersBar;
-    qDebug() << "Shift Light On:" << isShiftLightOn;
-    qDebug() << "Handbrake On:" << isHandbrakeOn;
-    qDebug() << "ABS Active:" << isABSActive;
-    qDebug() << "Oil Warning:" << isOilWarning;
-    qDebug() << "Left Signal:" << isLeftSignal;
-    qDebug() << "Right Signal:" << isRightSignal;
+   // Debug - wypisanie wartości
+   // qDebug() << "Turbo Aktywne:" << isTurboActive;
+   // qDebug() << "Preferuje km/h:" << isMetric;
+   // qDebug() << "Preferuje BAR:" << prefersBar;
+   // qDebug() << "Shift Light On:" << isShiftLightOn;
+   // qDebug() << "Handbrake On:" << isHandbrakeOn;
+   // qDebug() << "Beam On:" << isFullBeam;
+   // qDebug() << "ABS Active:" << isABSActive;
+   // qDebug() << "Oil Warning:" << isOilWarning;
+   //qDebug() << "Left Signal:" << isLeftSignal;
+   // qDebug() << "Right Signal:" << isRightSignal;
+    qDebug() << "ramka" << telemetry.dashLights;
 
-    ui->lcdNumberTime->display(static_cast<int>(telemetry.time));
+    //ui->lcdNumberTime->display(static_cast<int>(telemetry.time));
     //ui->lcdNumberSpeed->display(static_cast<int>(telemetry.car));
     ui->lcdNumberGear->display(static_cast<double>(telemetry.gear));
     ui->lcdNumberSpeed->display(static_cast<double>(telemetry.speed));
@@ -342,7 +347,7 @@ void MainWindow::processUdpData(QByteArray &datagram)
     ui->lcdNumberTurbo->display(static_cast<double>(telemetry.turbo));
     ui->lcdNumberEnginetemp->display(static_cast<double>(telemetry.engTemp));
     ui->lcdNumberFuel->display(static_cast<double>(telemetry.fuel));
-    ui->lcdNumberOilPresure->display(static_cast<double>(telemetry.oilPressure));
+    // ui->lcdNumberOilPresure->display(static_cast<double>(telemetry.oilPressure));
     ui->lcdNumberOilTemp->display(static_cast<double>(telemetry.oilTemp));
     ui->lcdNumberDashlights->display(static_cast<double>(telemetry.dashLights));
     ui->lcdNumberShowlights->display(static_cast<double>(telemetry.showLights));
@@ -352,11 +357,17 @@ void MainWindow::processUdpData(QByteArray &datagram)
 
 
     // Aktualizacja UI
-   // ui->labelTurbo->setText(isTurboActive ? "Turbo: ON" : "Turbo: OFF");
-   // ui->labelSpeed->setText(QString("Speed: %1 %2").arg(telemetry.speed).arg(isMetric ? "km/h" : "mph"));
-    //ui->labelHandbrake->setText(isHandbrakeOn ? "Handbrake: ON" : "Handbrake: OFF");
-   // ui->labelABS->setText(isABSActive ? "ABS: ON" : "ABS: OFF");
-   // ui->labelOil->setText(isOilWarning ? "Oil Warning: ON" : "Oil Warning: OFF");
-    //ui->labelTurnSignals->setText(isLeftSignal ? "←" : (isRightSignal ? "→" : "-"));
+    ui->Turbo_ValueLabel->setText(isTurboActive ? "ON" : "OFF");
+    ui->KM_ValueLabel->setText(QString("%1 %2").arg(isMetric ? "km/h" : "mph"));
+    ui->BAR_ValueLabel->setText(prefersBar ? "ON" : "OFF");
+    ui->ShiftLight_ValueLabel->setText(isShiftLightOn ? "ON" : "OFF");
+    ui->FullBeam_ValueLabel->setText(isFullBeam ? "ON" : "OFF");
+    ui->HandBrake_ValueLabel->setText(isHandbrakeOn ? "ON" : "OFF");
+    ui->TractionCtrl_ValueLabel->setText(isTractionCtrl ? "ON" : "OFF");
+    ui->LeftTurnSignal_ValueLabel->setText(isLeftSignal ? "ON" : "OFF");
+    ui->RightTurnSignal_ValueLabel->setText(isRightSignal ? "ON" : "OFF");
+    ui->OilPresureWarning_ValueLabel->setText(isOilWarning ? "ON" : "OFF");
+    ui->BatteryWarning_ValueLabel->setText(isBatteryWarning ? "ON" : "OFF");
+    ui->ABS_ValueLabel->setText(isABSActive ? "ON" : "OFF");
 }
 
