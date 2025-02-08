@@ -61,7 +61,7 @@ try:
         print(f"Speed received: {speed:.2f} m/s from")
         print(f"RPM received: {rpm:.2f} m/s from")
         print(f"Engine temp received: {engTemp:.2f} *C from")
-        print(f"fuel: {fuel:.2f*100} % from")
+        print(f"fuel: {fuel*100:.2f} % from")
 
         speed_in_km_h = speed*3.6
         print(f"speed in km/h: {speed_in_km_h:.2f} km/h")
