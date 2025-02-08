@@ -68,7 +68,76 @@ Connecting e46 320D gauge to beamng drive
 - 10ms SENDING SPEED!!!! for 0x316 and 0x545 and 0x329, 1000ms and at signal change for 0x338
 - speed - frequency - 100Hz = 0km/h, 1770kHz for 255km/h
 - OutGauge UDP protocol in beam ng drive
+- k bus - 9600 baud rate inverted , even parity, 1 stop bit, line feed 
+ ![alt text](image-4.png)
+ ![alt text](image-5.png)
+ - left turn signal hD0 h07 hBF h5B h23 h83 h0E h3F hA2 
 
+ - two devices UDP - use brodcast ip - 192.168.1.255
+
+(Turn Right)
+{0xD0 0x07 0xBF 0x5B 0x43 0x83 0x2E 0x3F 0xE2}
+
+(Turn Left) 
+{0xD0 0x07 0xBF 0x5B 0x23 0x83 0x0E 0x3F 0xA2}
+
+(Hazard Lights)
+{0xD0 0x07 0xBF 0x5B 0x63 0x83 0x0E 0x3F 0xE2}
+
+(High Beam)
+{0xD0 0x07 0xBF 0x5B 0x07 0x83 0x0A 0x3F 0x82}
+
+(Stop Turning)
+{0xD0 0x07 0xBF 0x5B 0x03 0x83 0x0A 0x3F 0x86}
+
+(LCD Turn Off) - not working
+{0x30, 0x19, 0x80, 0x1A, 0x30, 0x00, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x83, 0x80, 0x04, 0x30, 0x1B, 0x00, 0x8F}
+```
+
+typedef struct xxx {
+    unsigned       time;            // time in milliseconds (to check order) // N/A, hardcoded to 0
+    char           car[4];          // Car name // N/A, fixed value of "beam"
+    unsigned short flags;           // Info (see OG_x below)
+    char           gear;            // Reverse:0, Neutral:1, First:2...
+    char           plid;            // Unique ID of viewed player (0 = none) // N/A, hardcoded to 0
+    float          speed;           // M/S
+    float          rpm;             // RPM
+    float          turbo;           // BAR
+    float          engTemp;         // C
+    float          fuel;            // 0 to 1
+    float          oilPressure;     // BAR // N/A, hardcoded to 0
+    float          oilTemp;         // C
+    unsigned       dashLights;      // Dash lights available (see DL_x below)
+    unsigned       showLights;      // Dash lights currently switched on
+    float          throttle;        // 0 to 1
+    float          brake;           // 0 to 1
+    float          clutch;          // 0 to 1
+    char           display1[16];    // Usually Fuel // N/A, hardcoded to ""
+    char           display2[16];    // Usually Settings // N/A, hardcoded to ""
+    int            id;              // optional - only if OutGauge ID is specified
+} xxx;
+-- OG_x - bits for flags
+local OG_SHIFT =     1  -- key // N/A
+local OG_CTRL  =     2  -- key // N/A
+local OG_TURBO =  8192  -- show turbo gauge
+local OG_KM    = 16384  -- if not set - user prefers MILES
+local OG_BAR   = 32768  -- if not set - user prefers PSI
+
+-- DL_x - bits for dashLights and showLights
+local DL_SHIFT        = 2 ^ 0    -- shift light
+local DL_FULLBEAM     = 2 ^ 1    -- full beam
+local DL_HANDBRAKE    = 2 ^ 2    -- handbrake
+local DL_PITSPEED     = 2 ^ 3    -- pit speed limiter // N/A
+local DL_TC           = 2 ^ 4    -- tc active or switched off
+local DL_SIGNAL_L     = 2 ^ 5    -- left turn signal
+local DL_SIGNAL_R     = 2 ^ 6    -- right turn signal
+local DL_SIGNAL_ANY   = 2 ^ 7    -- shared turn signal // N/A
+local DL_OILWARN      = 2 ^ 8    -- oil pressure warning
+local DL_BATTERY      = 2 ^ 9    -- battery warning
+local DL_ABS          = 2 ^ 10   -- abs active or switched off
+local DL_SPARE        = 2 ^ 11   -- N/A
+
+```
 ## CAN Frames
 
 # DME1 0x316  
