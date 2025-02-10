@@ -4,10 +4,14 @@ import pigpio
 import can
 import time
 import threading
+import serial
 
 # UDP config
 UDP_IP = "0.0.0.0"  # all addresses 
 UDP_PORT = 4444     # UDP Port
+UART_PORT = "/dev/serial0" # UART Port
+UART_BAUDRATE = 9600 # UART Baudrate
+
 try:
     bus = can.interface.Bus(channel='can0', bustype='socketcan')
     print("CAN Bus initialized successfully")
@@ -17,6 +21,13 @@ pi = pigpio.pi() #RPI gpio
 if not pi.connected:
     print("cant connect with pigpio")
     exit()
+
+try:
+    ser = serial.Serial(UART_PORT, UART_BAUDRATE, timeout=1)
+    print("UART initialized successfully")
+except Exception as e:
+    print(f"UART initialization error: {e}")
+
 
 #pwm pim
 PWM_PIN = 18  # GPIO 18 (PWM)
@@ -32,7 +43,15 @@ print(f"listening {UDP_PORT}...")
 #pi.set_PWM_dutycycle(PWM_PIN,125)
 #pi.set_PWM_frequency(PWM_PIN, 0)
 
-
+UART_FRAMES = {
+    "TURN_RIGHT": bytes([0xD0, 0x07, 0xBF, 0x5B, 0x43, 0x83, 0x2E, 0x3F, 0xE2]),
+    "TURN_LEFT": bytes([0xD0, 0x07, 0xBF, 0x5B, 0x23, 0x83, 0x0E, 0x3F, 0xA2]),
+    "HAZARD": bytes([0xD0, 0x07, 0xBF, 0x5B, 0x63, 0x83, 0x0E, 0x3F, 0xE2]),
+    "HIGH_BEAM": bytes([0xD0, 0x07, 0xBF, 0x5B, 0x07, 0x83, 0x0A, 0x3F, 0x82]),
+    "STOP_TURNING": bytes([0xD0, 0x07, 0xBF, 0x5B, 0x03, 0x83, 0x0A, 0x3F, 0x86]),
+    "LCD_OFF": bytes([0x30, 0x19, 0x80, 0x1A, 0x30, 0x00, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+                        0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x83, 0x80, 0x04, 0x30, 0x1B, 0x00, 0x8F])
+}
 
 frame_316 = can.Message(arbitration_id=0x316, data=[0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], is_extended_id=False)
 # UDP struct format 
@@ -117,6 +136,21 @@ try:
         except can.CanError:
             print("CAN sending error")
 
+        if show_lights & DL_SIGNAL_L:
+            ser.write(UART_FRAMES["TURN_LEFT"])
+            print("UART: Turn Left Sent")
+        elif show_lights & DL_SIGNAL_R:
+            ser.write(UART_FRAMES["TURN_RIGHT"])
+            print("UART: Turn Right Sent")
+        elif show_lights & DL_SIGNAL_R & DL_SIGNAL_L:
+            ser.write(UART_FRAMES["HAZARD"])
+            print("UART: Hazard Lights Sent")
+        elif show_lights & DL_FULLBEAM:
+            ser.write(UART_FRAMES["HIGH_BEAM"])
+            print("UART: High Beam Sent")
+        else:
+            ser.write(UART_FRAMES["STOP_TURNING"])
+            print("UART: Stop Turning Sent")
         # Synchronizacja do dokładnych 10 ms
         elapsed_time = time.monotonic() - start_time
         sleep_time = max(0.01 - elapsed_time, 0)
