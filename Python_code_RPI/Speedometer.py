@@ -8,7 +8,11 @@ import threading
 # UDP config
 UDP_IP = "0.0.0.0"  # all addresses 
 UDP_PORT = 4444     # UDP Port
-bus = can.interface.Bus(channel='can0', bustype='socketcan')
+try:
+    bus = can.interface.Bus(channel='can0', bustype='socketcan')
+    print("CAN Bus initialized successfully")
+except Exception as e:
+    print(f"CAN initialization error: {e}")
 pi = pigpio.pi() #RPI gpio
 if not pi.connected:
     print("cant connect with pigpio")
