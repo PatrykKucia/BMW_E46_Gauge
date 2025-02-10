@@ -34,7 +34,7 @@ print(f"listening {UDP_PORT}...")
 
 
 
-frame_316 = can.Message(arbitration_id=0x316, data=[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], is_extended_id=False)
+frame_316 = can.Message(arbitration_id=0x316, data=[0x0D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], is_extended_id=False)
 # UDP struct format 
 STRUCT_FORMAT = "I 4s H c c f f f f f f f I I f f f 16s 16s i"
 
@@ -107,10 +107,11 @@ try:
 
         # Wysłanie CAN
         try:
-            hexrpm = rpm/0.15625
+            hexrpm = int(rpm/0.15625)
             lsb = hexrpm & 0xFF
-            msb = (hexrpm >> 8) & 0xFF
-            frame_316 = modify_frame_byte(frame_316, 0, hexrpm)
+            msb =(hexrpm >> 8) & 0xFF
+            frame_316 = modify_frame_byte(frame_316, 2,lsb)
+            frame_316 = modify_frame_byte(frame_316, 3,msb)
             bus.send(frame_316)
             print("CAN sent")
         except can.CanError:
