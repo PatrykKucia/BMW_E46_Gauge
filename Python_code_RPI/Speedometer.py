@@ -32,7 +32,9 @@ print(f"listening {UDP_PORT}...")
 #pi.set_PWM_dutycycle(PWM_PIN,125)
 #pi.set_PWM_frequency(PWM_PIN, 0)
 
-msg = can.Message(arbitration_id=0x316, data=[0x0D, 0xff, 0xff, 0x04], is_extended_id=False)
+
+
+frame_316 = can.Message(arbitration_id=0x316, data=[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], is_extended_id=False)
 # UDP struct format 
 STRUCT_FORMAT = "I 4s H c c f f f f f f f I I f f f 16s 16s i"
 
@@ -41,6 +43,14 @@ min_pwm = 100
 max_pwm = 1770
 max_speed = 255
 current_pwm = 0  # Aktualna wartość PWM
+
+def modify_frame_byte(frame, byte_number, value):
+    if byte_number >= len(frame.data):
+        print("Byte number out of range")
+        return frame  
+    
+    frame.data[byte_number] = value
+    return frame  
 
 def update_pwm(speed_kmh):
     global current_pwm
@@ -97,7 +107,11 @@ try:
 
         # Wysłanie CAN
         try:
-            bus.send(msg)
+            hexrpm = rpm/0.15625
+            lsb = hexrpm & 0xFF
+            msb = (hexrpm >> 8) & 0xFF
+            frame_316 = modify_frame_byte(frame_316, 0, hexrpm)
+            bus.send(frame_316)
             print("CAN sent")
         except can.CanError:
             print("CAN sending error")
