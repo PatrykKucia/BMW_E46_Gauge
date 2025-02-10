@@ -9,11 +9,11 @@ import serial
 # UDP config
 UDP_IP = "0.0.0.0"  # all addresses 
 UDP_PORT = 4444     # UDP Port
-UART_PORT = "/dev/ttyAMA0" # UART Port
+UART_PORT = "/dev/ttyS0" # UART Port
 UART_BAUDRATE = 9600 # UART Baudrate
 
 try:
-    bus = can.interface.Bus(channel='can0', bustype='socketcan')
+an.interface.Bus(channel='can0', bustype='socketcan')
     print("CAN Bus initialized successfully")
 except Exception as e:
     print(f"CAN initialization error: {e}")
@@ -23,14 +23,7 @@ if not pi.connected:
     exit()
 
 try:
-    ser = serial.Serial(
-        port=UART_PORT,
-        baudrate=UART_BAUDRATE,
-        timeout=1,
-        parity=serial.PARITY_EVEN,  # EVEN parity
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS
-    )
+    ser = serial.Serial(UART_PORT, UART_BAUDRATE, timeout=1)
     print("UART initialized successfully")
 except Exception as e:
     print(f"UART initialization error: {e}")
