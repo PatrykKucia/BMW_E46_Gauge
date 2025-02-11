@@ -69,6 +69,13 @@ Connecting e46 320D gauge to beamng drive
 - speed - frequency - 100Hz = 0km/h, 1770kHz for 255km/h
 - OutGauge UDP protocol in beam ng drive
 - k bus - 9600 baud rate inverted , even parity, 1 stop bit, line feed 
+- pin 11,12 and 15,16 - 420 ohm resistor for full tank level
+- pin 23 - parking brake
+- pin 25 - diagnostic txd
+- pin 21 - airbag 3 - engine feedback 17,18,8 - NC
+
+- 21 + 3 = 24 pin connector 
+
  ![alt text](image-4.png)
  ![alt text](image-5.png)
  - left turn signal hD0 h07 hBF h5B h23 h83 h0E h3F hA2 
@@ -92,6 +99,8 @@ Connecting e46 320D gauge to beamng drive
 
 (LCD Turn Off) - not working
 {0x30, 0x19, 0x80, 0x1A, 0x30, 0x00, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x83, 0x80, 0x04, 0x30, 0x1B, 0x00, 0x8F}
+
+Outgauge protocole
 ```
 
 typedef struct xxx {
