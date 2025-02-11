@@ -1,2 +1,4 @@
 Record=TopLevelDocument|FileName=3_3V_Power_Supply.SchDoc|SheetNumber=1
+Record=NoMainPathDocument|SourceDocument=3_3V_Power_Supply.SchDoc|FileName=Analog_Controll.SchDoc|SheetNumber=3
+Record=NoMainPathDocument|SourceDocument=3_3V_Power_Supply.SchDoc|FileName=Connectors.SchDoc|SheetNumber=4
 Record=NoMainPathDocument|SourceDocument=3_3V_Power_Supply.SchDoc|FileName=MCU.SchDoc|SheetNumber=2
