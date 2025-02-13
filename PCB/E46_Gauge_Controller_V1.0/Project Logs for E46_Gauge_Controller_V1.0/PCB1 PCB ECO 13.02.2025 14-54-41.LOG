@@ -1,0 +1,38 @@
+Added Component: Designator=SW?(SO20_219-10MST_CTS)
+Add component (AddParameter): Name = "Mfr_Name"; Value = "CTS Components"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "RefDes"; Value = "RefDes"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Type"; Value = "Type"; VariantName = "[No Variations]"
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component SW? 219-10MST

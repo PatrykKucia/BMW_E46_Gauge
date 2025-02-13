@@ -37,3 +37,22 @@ k bus tranciver - https://www.digikey.pl/en/products/detail/nxp-usa-inc/TJA1021T
 tranzystor PWM https://www.digikey.pl/en/products/detail/diodes-incorporated/DMN3042L-7/5223209
 
 panasonic rezistor https://www.digikey.pl/en/products/detail/panasonic-electronic-components/ERA-6AEB103V/1465773
+
+10 pin switch https://www.digikey.pl/en/products/detail/cts-electrocomponents/219-10MST/223215?s=N4IgTCBcDaIDoBcAEBhAKmAjATkwBgFkBlNAWgDkAREAXQF8g
+
+p chanel mosfet for backlight https://www.digikey.pl/en/products/detail/alpha-omega-semiconductor-inc/AO3401A/1855773
+
+0.1uF kemet https://chat.openai.com/c/5229c1b0-e765-4110-bb0d-255ac3620eb4
+
+cewka HCM0703-3R3-R https://www.digikey.pl/en/products/detail/eaton-electronics-division/HCM0703-3R3-R/2295029?s=N4IgTCBcDaIBIGECyAGA7CgzAWkwJRzxAF0BfIA
+
+33.3kohma 1% https://www.digikey.pl/en/products/detail/stackpole-electronics-inc/RMCF0805FT33K2/1760489
+
+10k 1% https://www.digikey.pl/en/products/detail/te-connectivity-passive-product/CRGCQ0805F10K/8576363
+
+capacitor 22uf SW output hhttps://www.digikey.pl/en/products/detail/tdk-corporation/C2012X6S0J226M085AC/3951705
+
+10uF capacitor 25V 10% https://www.digikey.pl/en/products/detail/murata-electronics/GRM21BR61E106KA73L/2334874
+
+
+0.1uF capaciitor 100V 10% https://www.digikey.pl/en/products/detail/murata-electronics/GCM21BR72A104KA37L/1641663
