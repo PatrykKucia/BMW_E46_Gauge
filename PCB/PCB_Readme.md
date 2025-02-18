@@ -34,6 +34,8 @@ ESP32-WROOM-32E-N4 https://www.digikey.pl/en/products/detail/espressif-systems/E
 
 k bus tranciver - https://www.digikey.pl/en/products/detail/nxp-usa-inc/TJA1021T-10-C-118/1973465
 
+---- changed to TJA1027T/20/1J (no INH needed) https://www.digikey.pl/en/products/detail/nxp-usa-inc/TJA1027T-20-1J/5035816
+
 tranzystor PWM https://www.digikey.pl/en/products/detail/diodes-incorporated/DMN3042L-7/5223209
 
 panasonic rezistor https://www.digikey.pl/en/products/detail/panasonic-electronic-components/ERA-6AEB103V/1465773
@@ -56,3 +58,5 @@ capacitor 22uf SW output hhttps://www.digikey.pl/en/products/detail/tdk-corporat
 
 
 0.1uF capaciitor 100V 10% https://www.digikey.pl/en/products/detail/murata-electronics/GCM21BR72A104KA37L/1641663
+
+tranzystor pod K-bus BC846BLT1G https://www.digikey.pl/en/products/detail/onsemi/BC846BLT1G/918342

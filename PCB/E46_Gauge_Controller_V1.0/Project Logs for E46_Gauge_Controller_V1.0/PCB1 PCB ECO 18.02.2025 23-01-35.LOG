@@ -1,0 +1,69 @@
+Removed Member From Class: ClassName=Analog_Controll Member=U?
+Add Component: Footprint Not Found SO8_SOT96-1_NXP
+Add Net: Net with name "NetC?_2" already exists
+Add Net: Net with name "NetC?_2" already exists
+Add Net: Net with name "NetC?_2" already exists
+Add Net: Net with name "NetD?_2" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetQ?_1" already exists
+Add Net: Net with name "NetQ?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=Analog_Controll Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=CAN Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=CAN Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component D? 150080SS75000
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Analog_Controll Member=Component Q? BC846BLT1G
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=CAN Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=CAN Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=CAN Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component TP? 12V Test Point
+Added Member To Class: ClassName=CAN Member=Component TP? CAN H Test Point
+Added Member To Class: ClassName=CAN Member=Component TP? CAN L Test Point
+Add Class Member: Failed to add class member : Component U4 TJA1027T201J
