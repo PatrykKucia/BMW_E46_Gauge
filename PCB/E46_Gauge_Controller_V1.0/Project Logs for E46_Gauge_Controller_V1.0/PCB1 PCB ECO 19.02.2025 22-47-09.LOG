@@ -1,0 +1,101 @@
+Added Component: Designator=J?(CON12_2X6_TU_HTS_SAI)
+Add component (AddParameter): Name = "Mfr_Name"; Value = "Samtec Inc"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "RefDes"; Value = "RefDes"; VariantName = "[No Variations]"
+Add component (AddParameter): Name = "Type"; Value = "Type"; VariantName = "[No Variations]"
+Add Net: Net with name "NetC?_2" already exists
+Add Net: Net with name "NetC?_2" already exists
+Add Net: Net with name "NetC?_2" already exists
+Add Net: Net with name "NetD?_2" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetMOSFET?_1" already exists
+Add Net: Net with name "NetQ?_1" already exists
+Add Net: Net with name "NetQ?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_1" already exists
+Add Net: Net with name "NetR?_2" already exists
+Add Net: Net with name "NetR?_2" already exists
+Add Net: Net with name "NetR?_2" already exists
+Add Net: Net with name "NetR?_2" already exists
+Added Pin To Net: NetName=STM-ESP-RX Pin=J?-4
+Added Net: Name=STM-ESP-RX
+Added Pin To Net: NetName=SWCLK Pin=J?-2
+Added Net: Name=SWCLK
+Added Pin To Net: NetName=SWDIO Pin=J?-1
+Added Net: Name=SWDIO
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=Analog_Controll Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=Analog_Controll Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=Analog_Controll Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=CAN Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=CAN Member=Component C? 399-C0805C223K5RAC7800CT-ND
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component D? 150080SS75000
+Added Member To Class: ClassName=MCU Member=Component J? 12_goldpin
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Indicators Member=Component MOSFET? DMN3042L-7
+Added Member To Class: ClassName=Analog_Controll Member=Component Q? BC846BLT1G
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=CAN Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=CAN Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=CAN Member=Component R? CRG0805ZR
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=Indicators Member=Component R? ERA-6AEB103V
+Added Member To Class: ClassName=3_3V_Power_Supply Member=Component TP? 12V Test Point
+Added Member To Class: ClassName=CAN Member=Component TP? CAN H Test Point
+Added Member To Class: ClassName=CAN Member=Component TP? CAN L Test Point
