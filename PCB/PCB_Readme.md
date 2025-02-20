@@ -60,3 +60,7 @@ capacitor 22uf SW output hhttps://www.digikey.pl/en/products/detail/tdk-corporat
 0.1uF capaciitor 100V 10% https://www.digikey.pl/en/products/detail/murata-electronics/GCM21BR72A104KA37L/1641663
 
 tranzystor pod K-bus BC846BLT1G https://www.digikey.pl/en/products/detail/onsemi/BC846BLT1G/918342
+
+STM32H523CET6 https://www.digikey.pl/en/products/detail/stmicroelectronics/STM32H523CET6/22519713
+
+crystal 8Mhz https://www.digikey.pl/en/products/detail/abracon-llc/ABM8AIG-8-000MHZ-1Z-T/10313751
