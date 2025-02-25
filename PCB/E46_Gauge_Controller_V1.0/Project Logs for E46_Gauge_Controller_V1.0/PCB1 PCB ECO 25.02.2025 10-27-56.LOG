@@ -1,0 +1,4 @@
+Removed Pin From Net: NetName=STM-AT-TX Pin=J1-3
+Removed Pin From Net: NetName=NetJ1_6 Pin=J1-6
+Added Pin To Net: NetName=STM-AT-TX Pin=J1-6
+Change Net Name : Old Net Name=NetJ1_6 New Net Name=NetRo6_1

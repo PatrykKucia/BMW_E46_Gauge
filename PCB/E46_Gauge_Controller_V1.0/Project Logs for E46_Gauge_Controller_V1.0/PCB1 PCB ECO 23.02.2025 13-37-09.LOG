@@ -1,0 +1,9 @@
+Change Component Designator: OldDesignator= Ro25 NewDesignator=Ro25
+Change Component Designator: OldDesignator= Ro26 NewDesignator=Ro26
+Change Component Designator: OldDesignator= Ro27 NewDesignator=Ro27
+Added Pin To Net: NetName=GND Pin=R46-1
+Change Net Name : Old Net Name=Net Ro25_1 New Net Name=NetRo25_1
+Change Net Name : Old Net Name=Net Ro27_1 New Net Name=NetRo27_1
+Added Member To Class: ClassName=CAN Member=Component Ro25 CRG0805ZR
+Added Member To Class: ClassName=CAN Member=Component Ro26 CRG0805ZR
+Added Member To Class: ClassName=CAN Member=Component Ro27 CRG0805ZR

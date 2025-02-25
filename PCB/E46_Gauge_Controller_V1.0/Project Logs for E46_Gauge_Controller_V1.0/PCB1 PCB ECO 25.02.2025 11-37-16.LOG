@@ -1,0 +1,20 @@
+Removed Pin From Net: NetName=NetJ2_11 Pin=Ro19-1
+Removed Pin From Net: NetName=NetJ2_12 Pin=Ro20-1
+Removed Pin From Net: NetName=NetJ2_10 Pin=Ro21-1
+Removed Pin From Net: NetName=NetJ2_9 Pin=Ro22-1
+Removed Pin From Net: NetName=NetRo20_2 Pin=U3-6
+Removed Pin From Net: NetName=NetRo21_2 Pin=U3-7
+Added Pin To Net: NetName=NetJ2_9 Pin=Ro19-2
+Added Pin To Net: NetName=NetJ2_10 Pin=Ro20-1
+Added Pin To Net: NetName=NetJ2_12 Pin=Ro21-1
+Added Pin To Net: NetName=NetJ2_11 Pin=Ro22-2
+Added Pin To Net: NetName=NetRo21_2 Pin=U3-6
+Added Pin To Net: NetName=NetRo20_2 Pin=U3-7
+Added Pin To Net: NetName=NetRo19_1 Pin=Ro19-1
+Added Pin To Net: NetName=NetRo19_1 Pin=U3-8
+Added Net: Name=NetRo19_1
+Added Pin To Net: NetName=NetRo22_1 Pin=Ro22-1
+Added Pin To Net: NetName=NetRo22_1 Pin=U3-5
+Added Net: Name=NetRo22_1
+Added Member To Class: ClassName=Analog_Controll Member=Component Ro20 ERA-6AEB103V
+Added Member To Class: ClassName=Analog_Controll Member=Component Ro22 ERA-6AEB103V

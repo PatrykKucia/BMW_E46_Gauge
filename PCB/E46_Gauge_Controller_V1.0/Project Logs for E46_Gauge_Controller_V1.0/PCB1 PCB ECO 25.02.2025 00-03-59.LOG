@@ -1,0 +1,25 @@
+Removed Pin From Net: NetName=NetJ2_16 Pin=J2-16
+Removed Pin From Net: NetName=NetJ2_17 Pin=J2-17
+Removed Pin From Net: NetName=NetJ2_18 Pin=J2-18
+Removed Pin From Net: NetName=NetJ2_19 Pin=J2-19
+Removed Pin From Net: NetName=NetJ2_21 Pin=J2-21
+Removed Pin From Net: NetName=NetJ2_22 Pin=J2-22
+Removed Pin From Net: NetName=NetJ2_23 Pin=J2-23
+Removed Pin From Net: NetName=NetJ2_24 Pin=J2-24
+Added Pin To Net: NetName=NetJ2_24 Pin=J2-16
+Added Pin To Net: NetName=NetJ2_23 Pin=J2-17
+Added Pin To Net: NetName=NetJ2_22 Pin=J2-18
+Added Pin To Net: NetName=NetJ2_21 Pin=J2-19
+Added Pin To Net: NetName=NetJ2_19 Pin=J2-21
+Added Pin To Net: NetName=NetJ2_18 Pin=J2-22
+Added Pin To Net: NetName=NetJ2_17 Pin=J2-23
+Added Pin To Net: NetName=NetJ2_16 Pin=J2-24
+Change Net Name : Old Net Name=NetJ2_16 New Net Name=NetJ2_24
+Change Net Name : Old Net Name=NetJ2_17 New Net Name=NetJ2_23
+Change Net Name : Old Net Name=NetJ2_18 New Net Name=NetJ2_22
+Change Net Name : Old Net Name=NetJ2_19 New Net Name=NetJ2_21
+Change Net Name : Old Net Name=NetJ2_21 New Net Name=NetJ2_19
+Change Net Name : Old Net Name=NetJ2_22 New Net Name=NetJ2_18
+Change Net Name : Old Net Name=NetJ2_23 New Net Name=NetJ2_17
+Change Net Name : Old Net Name=NetJ2_24 New Net Name=NetJ2_16
+Added Member To Class: ClassName=Connectors Member=Component J2 39-30-1240
