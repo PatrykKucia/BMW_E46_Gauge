@@ -170,8 +170,170 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=HTLSATWT
 
+[Document8]
+DocumentPath=Job1.OutJob
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=0
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=
+
+[Document9]
+DocumentPath=E46_Gauge_Controller_V1.0.BomDoc
+AnnotationEnabled=1
+AnnotateStartValue=1
+AnnotationIndexControlEnabled=0
+AnnotateSuffix=
+AnnotateScope=All
+AnnotateOrder=-1
+DoLibraryUpdate=1
+DoDatabaseUpdate=1
+ClassGenCCAutoEnabled=1
+ClassGenCCAutoRoomEnabled=0
+ClassGenNCAutoScope=None
+DItemRevisionGUID=
+GenerateClassCluster=0
+DocumentUniqueId=
+
 [GeneratedDocument1]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\BOM\Bill of Materials.xlsx
+DItemRevisionGUID=
+
+[GeneratedDocument2]
+DocumentPath=Project Outputs for Free Documents\BOM\Bill of Materials.xlsx
+DItemRevisionGUID=
+
+[GeneratedDocument3]
 DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Design Rule Check - PCB1.html
+DItemRevisionGUID=
+
+[GeneratedDocument4]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\ExportSTEP\Export STEP.step
+DItemRevisionGUID=
+
+[GeneratedDocument5]
+DocumentPath=Project Outputs for Free Documents\ExportSTEP\Export STEP.step
+DItemRevisionGUID=
+
+[GeneratedDocument6]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Pick Place\Generates pick and place files.txt
+DItemRevisionGUID=
+
+[GeneratedDocument7]
+DocumentPath=Project Outputs for Free Documents\Pick Place\Generates pick and place files.txt
+DItemRevisionGUID=
+
+[GeneratedDocument8]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.EXTREP
+DItemRevisionGUID=
+
+[GeneratedDocument9]
+DocumentPath=Project Outputs for Free Documents\Gerber\Gerber Files.EXTREP
+DItemRevisionGUID=
+
+[GeneratedDocument10]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.G1
+DItemRevisionGUID=
+
+[GeneratedDocument11]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.G2
+DItemRevisionGUID=
+
+[GeneratedDocument12]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GBL
+DItemRevisionGUID=
+
+[GeneratedDocument13]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GBO
+DItemRevisionGUID=
+
+[GeneratedDocument14]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GBP
+DItemRevisionGUID=
+
+[GeneratedDocument15]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GBS
+DItemRevisionGUID=
+
+[GeneratedDocument16]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GD1
+DItemRevisionGUID=
+
+[GeneratedDocument17]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GG1
+DItemRevisionGUID=
+
+[GeneratedDocument18]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GM
+DItemRevisionGUID=
+
+[GeneratedDocument19]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GTL
+DItemRevisionGUID=
+
+[GeneratedDocument20]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GTO
+DItemRevisionGUID=
+
+[GeneratedDocument21]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GTP
+DItemRevisionGUID=
+
+[GeneratedDocument22]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.GTS
+DItemRevisionGUID=
+
+[GeneratedDocument23]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Gerber\Gerber Files.REP
+DItemRevisionGUID=
+
+[GeneratedDocument24]
+DocumentPath=Project Outputs for Free Documents\Gerber\Gerber Files.REP
+DItemRevisionGUID=
+
+[GeneratedDocument25]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\NC Drill\NC Drill Files-RoundHoles.TXT
+DItemRevisionGUID=
+
+[GeneratedDocument26]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\NC Drill\NC Drill Files-SlotHoles.TXT
+DItemRevisionGUID=
+
+[GeneratedDocument27]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\NC Drill\NC Drill Files.DRR
+DItemRevisionGUID=
+
+[GeneratedDocument28]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\NC Drill\NC Drill Files.LDP
+DItemRevisionGUID=
+
+[GeneratedDocument29]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\PCB 3D Print\PCB 3D Print.png
+DItemRevisionGUID=
+
+[GeneratedDocument30]
+DocumentPath=Project Outputs for Free Documents\PCB 3D Print\PCB 3D Print.png
+DItemRevisionGUID=
+
+[GeneratedDocument31]
+DocumentPath=C:\Users\patti\AppData\Local\Temp\QjzA49.xls
+DItemRevisionGUID=
+
+[GeneratedDocument32]
+DocumentPath=Project Outputs for E46_Gauge_Controller_V1.0\Report Board Stack\Report Board Stack.xls
+DItemRevisionGUID=
+
+[GeneratedDocument33]
+DocumentPath=Project Outputs for Free Documents\Report Board Stack\Report Board Stack.xls
 DItemRevisionGUID=
 
 [Configuration1]
