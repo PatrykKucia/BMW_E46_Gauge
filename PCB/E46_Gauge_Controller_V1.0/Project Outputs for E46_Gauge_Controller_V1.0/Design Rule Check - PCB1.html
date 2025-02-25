@@ -1,0 +1,435 @@
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html">
+<style type="text/css">
+		h1, h2, h3, h4, h5, h6 {
+			font-family : segoe ui;
+			color : black;
+			background-color : #EDE7D9;
+			padding: 0.3em;
+		}
+
+		h1 {
+			font-size: 1.2em;
+		}		
+
+		h2 {
+			font-size: 1.2em;
+		}
+
+		body {
+			font-family : segoe ui;
+		}
+
+		td, th {
+			padding: 0.5em;
+			text-align : left;
+			width: 10em;
+		}
+		th {
+			background-color : #EEEEEE;
+
+		}
+		th.column1, td.column1 {
+			text-align: left;
+			width : auto;
+		}
+		table {
+			width : 100%;
+			font-size: 0.9em;
+		}
+
+		.DRC_summary_header {
+			padding-bottom : 0.1em;
+			border : 0px solid black;
+			width: 100%;
+			align: left;
+		}
+
+		.DRC_summary_header_col1,
+		.DRC_summary_header_col2, 
+		.DRC_summary_header_col3 {
+			color : black;
+			font-size:100%;
+			padding : 0em;
+			padding-top : 0.2em;
+			padding-bottom 0.2em;
+			border : 0px solid black;
+			vertical-align: top;
+			text-align: left;
+		}
+
+		.DRC_summary_header_col1 {
+			font-weight: bold;
+			width: 9em;
+		}
+
+		.DRC_summary_header_col2 {
+			width: 0.1em;
+		
+		}
+
+		.DRC_summary_header_col3 {
+			width : auto;
+		}
+
+		.header_holder {
+		    Width = 100%;
+		    border = 0px solid green;
+		    padding = 0;
+		}
+
+
+		.front_matter, .front_matter_column1, .front_matter_column2, .front_matter_column3
+		{
+			left : 0;
+			top : 0;
+			padding: 0em;
+			padding-top : 0.1em;
+			border : 0px solid black;
+			width : 100%;
+			vertical-align: top;
+			text-align: left;
+		}
+
+		.front_matter_column1 {
+			width : 8em;
+			font-weight: bold;
+		}
+
+		.front_matter_column2 {
+			width: 0.1em;
+		}
+
+		.front_matter_column3 {
+			width : auto;
+		}
+
+		.total_column1, .total_column {
+			font-weight : bold;
+		}
+		.total_column1 {
+			text-align : left;
+		}
+		.warning, .error {
+			color : red;
+			font-weight : bold;
+		}
+		tr.onmouseout_odd {
+			background-color : #white;
+		}
+		tr.onmouseout_even { 
+			background-color : #FAFAFA;
+		}
+		tr.onmouseover_odd, tr.onmouseover_even { 
+			background-color : #EEEEEE;
+		} 
+		a:link, a:visited, .q a:link,.q a:active,.q {
+			color: #21489e; 
+		}
+		a:link.callback, a:visited.callback { 
+			color: #21489e;
+		}
+		a:link.customize, a:visited.customize {
+			color: #C0C0C0;
+			position: absolute; 
+			right: 10px;
+		}	
+		p.contents_level1 {
+			font-weight : bold;
+			font-size : 110%;
+			margin : 0.5em;
+		}
+		p.contents_level2 {
+			position : relative;
+			left : 20px;
+			margin : 0.5em;
+		}
+	</style><script type="text/javascript">
+		function coordToMils(coord) {
+			var number = coord / 10000;
+			
+			if (number != number.toFixed(3))
+				number = number.toFixed(3);
+
+			return number + 'mil'
+		}
+
+		function coordToMM(coord) {
+			var number = 0.0254 * coord / 10000;
+			
+			if (number != number.toFixed(4))
+				number = number.toFixed(4);
+			
+			return number + 'mm'
+		}
+	
+		function convertCoord(coordNode, units) {
+			for (var i = 0; i < coordNode.childNodes.length; i++) {
+				coordNode.removeChild(coordNode.childNodes[i]);
+			}
+
+			var coord = coordNode.getAttribute('value');
+			if (coord != null) {
+				if (units == 'mm') {
+					textNode = document.createTextNode(coordToMM(coord));
+					coordNode.appendChild(textNode);
+				} else if (units == 'mil') {
+					textNode = document.createTextNode(coordToMils(coord));		
+					coordNode.appendChild(textNode);	
+				}
+			}
+		}
+	
+		function convertUnits(unitNode, units) {
+			for (var i = 0; i < unitNode.childNodes.length; i++) {
+				unitNode.removeChild(unitNode.childNodes[i]);		
+			}
+		
+			textNode = document.createTextNode(units); 
+			unitNode.appendChild(textNode);
+		}
+	
+		function changeUnits(radio_input, units) {
+			if (radio_input.checked) {
+			
+				var elements = document.getElementsByName('coordinate');
+				if (elements) {
+					for (var i = 0; i < elements.length; i++) {
+						convertCoord(elements[i], units);
+					}
+				}
+	
+				var elements = document.getElementsByName('units');
+				if (elements) {
+					for (var i = 0; i < elements.length; i++) {
+						convertUnits(elements[i], units);
+					}
+				}
+			}
+		}
+	</script><title>Design Rule Verification Report</title>
+</head>
+<body onload=""><img ALT="Altium" src="
+			file://C:\Users\Public\Documents\Altium\AD24\Templates\AD_logo.png
+		"><h1>Design Rule Verification Report</h1>
+<table class="header_holder">
+<td class="column1">
+<table class="front_matter">
+<tr class="front_matter">
+<td class="front_matter_column1">Date:</td>
+<td class="front_matter_column2"></td>
+<td class="front_matter_column3">25.02.2025</td>
+</tr>
+<tr class="front_matter">
+<td class="front_matter_column1">Time:</td>
+<td class="front_matter_column2"></td>
+<td class="front_matter_column3">15:47:10</td>
+</tr>
+<tr class="front_matter">
+<td class="front_matter_column1">Elapsed Time:</td>
+<td class="front_matter_column2"></td>
+<td class="front_matter_column3">00:00:01</td>
+</tr>
+<tr class="front_matter">
+<td class="front_matter_column1">Filename:</td>
+<td class="front_matter_column2"></td>
+<td class="front_matter_column3"><a href="file:///E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc" class="file"><acronym title="E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc">E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc</acronym></a></td>
+</tr>
+</table>
+</td>
+<td class="column2">
+<table class="DRC_summary_header">
+<tr>
+<td class="DRC_summary_header_col1">Warnings:</td>
+<td class="DRC_summary_header_col2"></td>
+<td class="DRC_summary_header_col3">0</td></tr>
+<tr>
+<td class="DRC_summary_header_col1">Rule Violations:</td>
+<td class="DRC_summary_header_col2"></td>
+<td class="DRC_summary_header_col3" style="color : red">33</td></tr>
+</table>
+</td>
+</table><a name="IDSTDD550ONOOTLBQWP2IWU4T0VCZW4BYIUXBHL0PCK250MDSL2DQN"><h2>Summary</h2></a><table>
+<tr>
+<th class="column1">Warnings</th>
+<th class="column2">Count</th>
+</tr>
+<tr>
+<td style="font-weight : bold; text-align : right" class="column1">Total</td>
+<td style="font-weight : bold" class="column2">0</td>
+</tr>
+</table><br><table>
+<tr>
+<th class="column1">Rule Violations</th>
+<th class="column2">Count</th>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#IDLW5W0C24Y4EIDAJI0LUBVDS0RL33ZM4CFGJWZZGHECOSARIME2VK">Clearance Constraint (Gap=0.254mm) (All),(All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="#IDIT41JXSDARHEMGIFZHWJRVIF1GD0GYXL1LXONFMK1PTZN3ZZWRRM">Short-Circuit Constraint (Allowed=No) (All),(All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#IDR5O30Y3IOOB1KQX42ZZE004T2EFVRPEJW2HZ51FMT22MKGT5WFRB">Un-Routed Net Constraint ( (All) )</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="#ID0KWW4O4VZ0H1CS41ANODWFAPWLCDKL2UGRXSAMKR0CB4HQOOTQFD">Modified Polygon (Allow modified: No), (Allow shelved: No)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#IDXK2CQABBV05II0I3APUENNA1HI1WG5ADO3X3GICNUT2GQ2E44UCD">Width Constraint (Min=0.254mm) (Max=2mm) (Preferred=0.254mm) (InNet('NetF1_1'))</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="#IDXMDKDD3ASIIXDFNKBXB5GX0WEHEY4DRLOXCJLBJJW0BC2XVJFTB">Routing Topology Rule(Topology=Shortest) (All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#IDYCMTJIRBBQTTI11V15XKHKELTKYJLXNERLB0DBMK3BNJH2DRNVII">Power Plane Connect Rule(Relief Connect )(Expansion=0.508mm) (Conductor Width=0.254mm) (Air Gap=0.254mm) (Entries=4) (All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="#IDCUIYEY2DWQF0K5GLOJZ55ZUBKSZ4P5IFBLTREM31UL4VYLFMNGF">Hole Size Constraint (Min=0.2mm) (Max=6.3mm) (All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#ID05Y3GAYIKVCIRQ2FCJPHMHDKKCUIRV20GBXBUOB3ELUPVF4BPSJ">Hole To Hole Clearance (Gap=0.5mm) (All),(All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="#IDCFO542YPA0CRGQUNKYVVFIZ2CP1F1LKHUL1XOFPA25R5OYITB2GI">Minimum Solder Mask Sliver (Gap=0.1mm) (All),(All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#IDB4YEJSEDCH5TBH1WMDC0ECADBMMMJRUFHDCM1NI5ODXDRCVJH5MG">Silk To Solder Mask (Clearance=0.15mm) (IsPad),(All)</a></td>
+<td class="column2">33</td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="#IDTCT454F3QNDGBFQKXWD55YPGKNICDKGCNOU0W1EA2TEVEIIQA5XJ">Silk to Silk (Clearance=0.15mm) (All),(All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#IDVPKIJDPUKV2AM13FITBXLGJE3B2IJVI3242AANOVIUSXN25DPVEE">Net Antennae (Tolerance=0mm) (All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="#IDQ25TMXJBAH2LFVOJMUSKIUCBOCDMXCDRPXRIZQLWP3GR1J2VP5UF">Board Clearance Constraint (Gap=0mm) (All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="#IDBYEYBXCNTERVJ1QOSIWQXYCGVCKHHTUENCDN0LONQK11GA1IEHCF">Height Constraint (Min=0mm) (Max=25.4mm) (Prefered=12.7mm) (All)</a></td>
+<td class="column2">0</td>
+</tr>
+<tr>
+<td style="font-weight : bold; text-align : right" class="column1">Total</td>
+<td style="font-weight : bold" class="column2">33</td>
+</tr>
+</table><br><a name="IDB4YEJSEDCH5TBH1WMDC0ECADBMMMJRUFHDCM1NI5ODXDRCVJH5MG"><table>
+<tr>
+<th style="text-align : left" colspan="1" class="rule">Silk To Solder Mask (Clearance=0.15mm) (IsPad),(All)</th>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4339.66mil|Location2.X=4346.815mil|Location1.Y=2958.613mil|Location2.Y=2965.768mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4339.66mil|Location2.X=4346.815mil|Location1.Y=2958.613mil|Location2.Y=2965.768mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (110.397mm,75.885mm) on Top Overlay And Pad TP32-TP?(110.397mm,75.885mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4354.664mil|Location2.X=4361.82mil|Location1.Y=2446.013mil|Location2.Y=2453.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4354.664mil|Location2.X=4361.82mil|Location1.Y=2446.013mil|Location2.Y=2453.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (110.778mm,62.865mm) on Top Overlay And Pad TP34-TP?(110.778mm,62.865mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4593.337mil|Location2.X=4600.492mil|Location1.Y=2446.013mil|Location2.Y=2453.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4593.337mil|Location2.X=4600.492mil|Location1.Y=2446.013mil|Location2.Y=2453.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (116.84mm,62.865mm) on Top Overlay And Pad TP33-TP?(116.84mm,62.865mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4615.107mil|Location2.X=4622.263mil|Location1.Y=2958.613mil|Location2.Y=2965.768mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4615.107mil|Location2.X=4622.263mil|Location1.Y=2958.613mil|Location2.Y=2965.768mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (117.393mm,75.885mm) on Top Overlay And Pad TP31-TP?(117.393mm,75.885mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4913.337mil|Location2.X=4920.492mil|Location1.Y=2636.013mil|Location2.Y=2643.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4913.337mil|Location2.X=4920.492mil|Location1.Y=2636.013mil|Location2.Y=2643.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (124.968mm,67.691mm) on Top Overlay And Pad TP4-TP?(124.968mm,67.691mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4938.337mil|Location2.X=4945.492mil|Location1.Y=2006.013mil|Location2.Y=2013.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=4938.337mil|Location2.X=4945.492mil|Location1.Y=2006.013mil|Location2.Y=2013.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (125.603mm,51.689mm) on Top Overlay And Pad TP14-TP?(125.603mm,51.689mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5028.337mil|Location2.X=5035.492mil|Location1.Y=2001.013mil|Location2.Y=2008.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5028.337mil|Location2.X=5035.492mil|Location1.Y=2001.013mil|Location2.Y=2008.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (127.889mm,51.562mm) on Top Overlay And Pad TP15-TP?(127.889mm,51.562mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5118.337mil|Location2.X=5125.492mil|Location1.Y=4066.013mil|Location2.Y=4073.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5118.337mil|Location2.X=5125.492mil|Location1.Y=4066.013mil|Location2.Y=4073.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (130.175mm,104.013mm) on Top Overlay And Pad TP7-TP?(130.175mm,104.013mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5248.337mil|Location2.X=5255.492mil|Location1.Y=2636.013mil|Location2.Y=2643.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5248.337mil|Location2.X=5255.492mil|Location1.Y=2636.013mil|Location2.Y=2643.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (133.477mm,67.691mm) on Top Overlay And Pad TP5-TP?(133.477mm,67.691mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5336.643mil|Location2.X=5343.798mil|Location1.Y=1649.649mil|Location2.Y=1656.805mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5336.643mil|Location2.X=5343.798mil|Location1.Y=1649.649mil|Location2.Y=1656.805mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (135.72mm,42.637mm) on Top Overlay And Pad +12V-TP?(135.72mm,42.637mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5336.643mil|Location2.X=5343.798mil|Location1.Y=1731.561mil|Location2.Y=1738.716mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5336.643mil|Location2.X=5343.798mil|Location1.Y=1731.561mil|Location2.Y=1738.716mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (135.72mm,44.718mm) on Top Overlay And Pad GND-TP?(135.72mm,44.718mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5336.643mil|Location2.X=5343.798mil|Location1.Y=1818.992mil|Location2.Y=1826.147mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5336.643mil|Location2.X=5343.798mil|Location1.Y=1818.992mil|Location2.Y=1826.147mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (135.72mm,46.939mm) on Top Overlay And Pad +3.3V-TP?(135.72mm,46.939mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5553.337mil|Location2.X=5560.492mil|Location1.Y=2636.013mil|Location2.Y=2643.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5553.337mil|Location2.X=5560.492mil|Location1.Y=2636.013mil|Location2.Y=2643.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (141.224mm,67.691mm) on Top Overlay And Pad TP6-TP?(141.224mm,67.691mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5651.161mil|Location2.X=5658.316mil|Location1.Y=2425.496mil|Location2.Y=2432.651mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5651.161mil|Location2.X=5658.316mil|Location1.Y=2425.496mil|Location2.Y=2432.651mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (143.709mm,62.344mm) on Top Overlay And Pad K-TX-TP?(143.709mm,62.344mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5826.424mil|Location2.X=5833.579mil|Location1.Y=2425.496mil|Location2.Y=2432.651mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=5826.424mil|Location2.X=5833.579mil|Location1.Y=2425.496mil|Location2.Y=2432.651mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (148.16mm,62.344mm) on Top Overlay And Pad K-RX-TP?(148.16mm,62.344mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6143.337mil|Location2.X=6150.492mil|Location1.Y=3301.013mil|Location2.Y=3308.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6143.337mil|Location2.X=6150.492mil|Location1.Y=3301.013mil|Location2.Y=3308.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (156.21mm,84.582mm) on Top Overlay And Pad TP3-TP?(156.21mm,84.582mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6193.337mil|Location2.X=6200.492mil|Location1.Y=2691.013mil|Location2.Y=2698.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6193.337mil|Location2.X=6200.492mil|Location1.Y=2691.013mil|Location2.Y=2698.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (157.48mm,69.088mm) on Top Overlay And Pad TP16-TP?(157.48mm,69.088mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6281.189mil|Location2.X=6288.344mil|Location1.Y=2689.655mil|Location2.Y=2696.81mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6281.189mil|Location2.X=6288.344mil|Location1.Y=2689.655mil|Location2.Y=2696.81mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (159.711mm,69.054mm) on Top Overlay And Pad TP17-TP?(159.711mm,69.054mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6368.763mil|Location2.X=6375.918mil|Location1.Y=2689.655mil|Location2.Y=2696.81mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6368.763mil|Location2.X=6375.918mil|Location1.Y=2689.655mil|Location2.Y=2696.81mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (161.936mm,69.054mm) on Top Overlay And Pad TP18-TP?(161.936mm,69.054mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6408.337mil|Location2.X=6415.492mil|Location1.Y=2021.013mil|Location2.Y=2028.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6408.337mil|Location2.X=6415.492mil|Location1.Y=2021.013mil|Location2.Y=2028.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (162.941mm,52.07mm) on Top Overlay And Pad TP20-TP?(162.941mm,52.07mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6452.084mil|Location2.X=6459.24mil|Location1.Y=2688.073mil|Location2.Y=2695.228mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6452.084mil|Location2.X=6459.24mil|Location1.Y=2688.073mil|Location2.Y=2695.228mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (164.052mm,69.013mm) on Top Overlay And Pad TP19-TP?(164.052mm,69.013mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6508.337mil|Location2.X=6515.492mil|Location1.Y=1941.013mil|Location2.Y=1948.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=6508.337mil|Location2.X=6515.492mil|Location1.Y=1941.013mil|Location2.Y=1948.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (165.481mm,50.038mm) on Top Overlay And Pad K-BUS-TP?(165.481mm,50.038mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3423.337mil|Location2.X=3430.492mil|Location1.Y=3746.862mil|Location2.Y=3754.017mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3423.337mil|Location2.X=3430.492mil|Location1.Y=3746.862mil|Location2.Y=3754.017mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (87.122mm,95.907mm) on Top Overlay And Pad TP8-TP?(87.122mm,95.907mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3423.337mil|Location2.X=3430.492mil|Location1.Y=3871.013mil|Location2.Y=3878.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3423.337mil|Location2.X=3430.492mil|Location1.Y=3871.013mil|Location2.Y=3878.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (87.122mm,99.06mm) on Top Overlay And Pad TP9-TP?(87.122mm,99.06mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2076.013mil|Location2.Y=2083.168mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2076.013mil|Location2.Y=2083.168mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,53.467mm) on Top Overlay And Pad BKL-TP?(93.985mm,53.467mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2243.513mil|Location2.Y=2250.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2243.513mil|Location2.Y=2250.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,57.721mm) on Top Overlay And Pad BAT-TP?(93.985mm,57.721mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2403.513mil|Location2.Y=2410.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2403.513mil|Location2.Y=2410.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,61.785mm) on Top Overlay And Pad OIL-TP?(93.985mm,61.785mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2563.513mil|Location2.Y=2570.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2563.513mil|Location2.Y=2570.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,65.85mm) on Top Overlay And Pad BFL-TP?(93.985mm,65.85mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2723.513mil|Location2.Y=2730.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2723.513mil|Location2.Y=2730.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,69.913mm) on Top Overlay And Pad ABS-TP?(93.985mm,69.913mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2883.513mil|Location2.Y=2890.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=2883.513mil|Location2.Y=2890.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,73.978mm) on Top Overlay And Pad PBR-TP?(93.985mm,73.978mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=3043.513mil|Location2.Y=3050.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=3043.513mil|Location2.Y=3050.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,78.041mm) on Top Overlay And Pad BWS-TP?(93.985mm,78.041mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_even" onmouseover="className = 'onmouseover_even'" onmouseout="className = 'onmouseout_even'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=3203.513mil|Location2.Y=3210.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=3203.513mil|Location2.Y=3210.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,82.106mm) on Top Overlay And Pad CLS-TP?(93.985mm,82.106mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+<tr class="onmouseout_odd" onmouseover="className = 'onmouseover_odd'" onmouseout="className = 'onmouseout_odd'">
+<td class="column1"><a href="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=3363.513mil|Location2.Y=3370.668mil|Absolute=True" class="callback"><acronym title="dxpprocess://PCB:Zoom?document=E:\git_repos\BMW_E46_Gauge\PCB\E46_Gauge_Controller_V1.0\PCB1.PcbDoc;viewname=PCBEditor;Action=AREA_DYNAMICZOOM|Location1.X=3693.522mil|Location2.X=3700.677mil|Location1.Y=3363.513mil|Location2.Y=3370.668mil|Absolute=True">Silk To Solder Mask Clearance Constraint: (0.1mm &lt; 0.15mm) Between Arc (93.985mm,86.169mm) on Top Overlay And Pad WFL-TP?(93.985mm,86.169mm) on Top Layer [Top Overlay] to [Top Solder] clearance [0.1mm]</acronym></a><br></td>
+</tr>
+</table></a><hr color="#EEEEEE"><a href="#top" style="font-size: 0.9em">Back to top</a><br><br></body>
+</html>
