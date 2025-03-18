@@ -31,7 +31,38 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define TURN_RAPID        0x80
+#define TURN_RIGHT        0x40
+#define TURN_LEFT         0x20
+#define FOG_REAR          0x10
+#define FOG_FRONT         0x08
+#define BEAM_HIGH         0x04
+#define BEAM_LOW          0x02
+#define PARKING           0x01
 
+#define CCM_LIC_PLATE     0x80
+#define CCM_TURN_RIGHT    0x40
+#define CCM_TURN_LEFT     0x20
+#define CCM_FOG_REAR      0x10
+#define CCM_FOG_FRONT     0x08
+#define CCM_HIGH_BEAM     0x04
+#define CCM_LOW_BEAM      0x02
+#define CCM_PARKING       0x01
+
+#define CCM_REVERSE       0x20
+#define INDICATORS        0x04
+#define CCM_BRAKE         0x02
+
+#define FOG_REAR_SWITCH   0x40
+#define KOMBI_LOW_LEFT    0x20
+#define KOMBI_LOW_RIGHT   0x10
+#define KOMBI_BRAKE_LEFT  0x02
+
+#define MIN_SPEED 0        // 0 km/h
+#define MAX_SPEED 255      // 255 km/h
+#define MIN_FREQ 100       // 100 Hz
+#define MAX_FREQ 1770000   // 1770 kHz
+#define PCLK1_FREQ 250000000 // 250 MHz
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -86,6 +117,61 @@ int __io_putchar(int ch) //function used to print() in usart
 
   return 1;
 }
+uint32_t PWM_frequency(uint8_t speed) {
+    if (speed < MIN_SPEED) {
+        speed = MIN_SPEED;
+    } else if (speed > MAX_SPEED) {
+        speed = MAX_SPEED;
+    }
+
+    // Przemiana liniowa prędkości na częstotliwość PWM
+    uint32_t freq = MIN_FREQ + (uint32_t)((float)(speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED) * (MAX_FREQ - MIN_FREQ));
+    return freq;
+}
+void Set_PWM_Frequency(uint16_t speed_kmh) {
+    // Poprawiona interpolacja częstotliwości
+    uint32_t freq = 100 + ((1700 - 100) * speed_kmh) / 250;
+
+    uint32_t arr_value, psc_value;
+
+    if (freq < 3800) {
+        psc_value = (250000000 / (65536 * freq));
+        if (psc_value > 65535) psc_value = 65535;  // PSC nie może przekroczyć 16 bitów
+        arr_value = (250000000 / ((psc_value + 1) * freq)) - 1;
+    } else {
+        psc_value = 0;
+        arr_value = (250000000 / freq) - 1;
+    }
+
+    if (arr_value > 65535) arr_value = 65535;  // Ograniczenie ARR do 16 bitów
+    printf("Speed: %d km/h, Freq: %lu Hz, PSC: %lu, ARR: %lu\n", speed_kmh, freq, psc_value, arr_value);
+
+    __HAL_TIM_SET_PRESCALER(&htim1, psc_value);
+    __HAL_TIM_SET_AUTORELOAD(&htim1, arr_value);
+    __HAL_TIM_SET_COUNTER(&htim1, 0);
+
+    // W niektórych przypadkach wymagane jest wygenerowanie zdarzenia aktualizacji
+    //__HAL_TIM_GENERATE_EVENT(&htim1, TIM_EVENTSOURCE_UPDATE);
+}
+
+void PWM_UpdateFrequency(TIM_HandleTypeDef *htim, uint8_t speed) {
+    uint32_t frequency = PWM_frequency(speed);
+
+    // Obliczanie prescalera
+    uint32_t prescaler = 1;
+    while (frequency < PCLK1_FREQ / 256 && prescaler < 256) {
+        prescaler *= 2;
+    }
+
+    // Obliczanie ARR (auto-reload) na podstawie częstotliwości PWM i preskalera
+    uint32_t arr = (PCLK1_FREQ / (frequency * prescaler)) - 1;
+
+    // Ustawienie wartości prescalera i ARR
+    __HAL_TIM_SET_PRESCALER(htim, prescaler - 1);
+     __HAL_TIM_SET_AUTORELOAD(htim, arr);
+     __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, arr);  // Ustawienie wypełnienia 50%
+ }
+
 /* USER CODE END 0 */
 
 /**
@@ -96,6 +182,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+
 
   /* USER CODE END 1 */
 
@@ -125,6 +212,11 @@ int main(void)
   MX_USART2_UART_Init();
   MX_ICACHE_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_OC_Start_IT(&htim1, TIM_CHANNEL_1);
+
+  //TIM1->CCR1 = 50;
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   //HAL_FDCAN_ConfigTxDelayCompensation(&hfdcan1, 5, 0);
   //HAL_FDCAN_EnableTxDelayCompensation(&hfdcan1);
 
@@ -177,18 +269,125 @@ int main(void)
   printf("starting\n");
   HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);
   //HAL_GPIO_WritePin(GPIO_PIN_3, GPIOB, GPIO_PIN_RESET);
+  uint8_t piecpiec[]     = {0x55};
 
-  uint8_t frame[] = {0xD0, 0x07, 0xBF, 0x5B, 0x43, 0x83, 0x2E, 0x3F, 0xE2};
-  uint8_t frame2[] = {0xD0, 0x07, 0xBF, 0x5B, 0x63, 0x83, 0x0E, 0x3F, 0xE2};
-  HAL_UART_Transmit(&huart2, frame, sizeof(frame), HAL_MAX_DELAY);
-  HAL_UART_Transmit(&huart2, frame2, sizeof(frame), HAL_MAX_DELAY);
+  uint8_t a[]     = {  0x3f, 0x0b, 0xBF ,0x0c, 0x00, 0x00, 0x00,0x00, 0x00 ,0x00, 0x01, 0x06 };
+  uint8_t turnRight[]     = {0xD0, 0x07, 0xBF, 0x5B, 0x43, 0x83, 0x2E, 0x3F, 0xE2, '\n'};
+  uint8_t turnLeft[]      = {0xD0, 0x07, 0xBF, 0x5B, 0x23, 0x83, 0x0E, 0x3F, 0xA2};
+  uint8_t hazardLights[]  = {0xD0, 0x07, 0xBF, 0x5B, 0x63, 0x83, 0x0E, 0x3F, 0xE2};
+  uint8_t highBeam1[] = {0xd0, 0x07, 0xbf, 0x5b, 0x07, 0x83, 0x0a, 0x3f, 0x82, '\n'};  // Zakończone LF (Line Feed)
+  uint8_t highBeam2[] = {0xd0, 0x07, 0xbf, 0x5b, 0x07, 0x83, 0x0a, 0x3f, 0x82, '\r'};  // Zakończone CR (Carriage Return)
+  uint8_t highBeam3[] = {0xd0, 0x07, 0xbf, 0x5b, 0x07, 0x83, 0x0a, 0x3f, 0x82, '\r', '\n'}; // Zakończone CRLF (Carriage Return + Line Feed)
+  uint8_t highBeam4[] = {0xd0, 0x07, 0xbf, 0x5b, 0x07, 0x83, 0x0a, 0x3f, 0x82, '\r', '\n'};
+  uint8_t testing[] = {0xd0, 0x07, 0xbf, 0x5b, 0x01 , 0xC9 , 0x02 , 0x02 , 0xFB, '\n'}; // Zakończone NULL (znak końca ciągu w stylu C)
+  uint8_t byte_before_newline = highBeam4[8];  // 0x82
+  uint8_t new_byte = (byte_before_newline << 1); // Przesuwamy 0x82 w lewo o 1 bit, aby zrobić miejsce na bit LOW
+
+  // Wstawiamy nowy bajt do tablicy
+  highBeam4[8] = new_byte;  // Zaktualizowana wartość 0x82 -> 0x04
+  uint8_t highBeam5[] = {0xd0, 0x07, 0xbf, 0x5b, 0x07, 0x83, 0x0a, 0x3f, 0x82, 0xFF}; // Zakończone 0xFF (często używane w niektórych protokołach)
+  uint8_t stopTurning[]   = {0xD0, 0x07, 0xBF, 0x5B, 0x03, 0x83, 0x0A, 0x3F, 0x86};
+  uint8_t lcdTurnOff[]    = {0x30, 0x19, 0x80, 0x1A, 0x30, 0x00, 0x20, 0x20, 0x20,
+                             0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+                             0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x83, 0x80, 0x04,
+                             0x30, 0x1B, 0x00, 0x8F};
+
+  uint8_t turnRight_noChecksum[] = {0xD0, 0x07, 0xBF, 0x5B, 0x40, 0x40, 0x32, 0x40};
+  uint8_t turnLeft_noChecksum[]  = {0xD0, 0x07, 0xBF, 0x5B, 0x23, 0x83, 0x0E, 0x3F};
+  uint8_t turnRight_XOR[9];
+  uint8_t turnLeft_XOR[9];
+  uint8_t calculateXORChecksum(uint8_t *data, uint16_t length) {
+      uint8_t checksum = 0;
+      for (uint16_t i = 0; i < length; i++) {
+          checksum ^= data[i];
+      }
+      return checksum;
+  }
+  uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
+      uint8_t checksum = 0;
+      for (uint8_t i = 0; i < length; i++) {
+          checksum ^= data[i];
+      }
+      return checksum;
+  }
+  void send_cluster_request(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4) {
+      uint8_t frame[9];
+      frame[0] = 0xD0;
+      frame[1] = 0x07; // Długość wiadomości
+      frame[2] = 0xBF;
+      frame[3] = 0x5B; // ID Cluster Indicators Request (0x5A)
+      frame[4] = byte1;
+      frame[5] = byte2;
+      frame[6] = byte3;
+      frame[7] = byte4;
+      frame[8] = calculate_checksum(frame, 8); // Checksum XOR
+ 	  HAL_UART_Transmit(&huart2, frame, sizeof(frame), 500);
+  }
+  void send_lin_frame(uint8_t identifier, uint8_t *data, uint8_t data_length) {
+      if (data_length > 8) return;  // Maksymalnie 8 bajtów danych w polu Data Field
+
+      uint8_t frame[11];  // Maksymalny rozmiar ramki: 1 bajt ID + 8 bajtów danych + 1 bajt sumy kontrolnej
+      frame[0] = identifier;
+
+      // Kopiowanie danych
+      for (uint8_t i = 0; i < data_length; i++) {
+          frame[1 + i] = data[i];
+      }
+
+      // Obliczanie sumy kontrolnej
+      uint8_t checksum = calculateXORChecksum(frame, 1 + data_length);
+      frame[1 + data_length] = checksum;
+
+      // Wysyłanie pola Break
+      __HAL_UART_SEND_REQ(&huart1, UART_SENDBREAK_REQUEST);
+      HAL_Delay(1);  // Krótka przerwa po Break
+
+      // Wysyłanie pola Sync
+      uint8_t sync = 0x55;
+      HAL_UART_Transmit(&huart1, &sync, 1, 100);
+
+      // Wysyłanie pola Identifier, Data i Checksum
+      HAL_UART_Transmit(&huart1, frame, 2 + data_length, 100);
+  }
+
+  void prepareChecksumFrames() {
+      memcpy(turnRight_XOR, turnRight_noChecksum, 8);
+      turnRight_XOR[8] = calculateXORChecksum(turnRight_noChecksum, 8);
+
+      memcpy(turnLeft_XOR, turnLeft_noChecksum, 8);
+      turnLeft_XOR[8] = calculateXORChecksum(turnLeft_noChecksum, 8);
+  }
+  // Funkcja wysyłania danych przez UART
+  void sendFrame(uint8_t *frame, uint16_t size) {
+	  HAL_LIN_SendBreak(&huart2);
+	  HAL_UART_Transmit(&huart2, piecpiec, sizeof(piecpiec), 100);
+      HAL_UART_Transmit(&huart2, frame, size, 100);
+  }
+
+ // HAL_UART_Transmit(&huart2, turnRight, sizeof(turnRight), 500);
+  //HAL_UART_Transmit(&huart2, frame, sizeof(frame), HAL_MAX_DELAY);
+  //HAL_UART_Transmit(&huart2, frame2, sizeof(frame), HAL_MAX_DELAY);
   uint8_t rxData[1]; // Bufor na 1 bajt danych
+  uint16_t speed = 0;
+	    int8_t direction = 1; // 1 = rośnie, -1 = maleje
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	        Set_PWM_Frequency(speed);
+	        HAL_Delay(1);
+
+	        speed += direction;
+	        if (speed >= 250) {
+	            direction = -1; // Odwracamy kierunek
+	        }
+	        else if (speed <= 0) {
+	       	            direction = 1; // Odwracamy kierunek
+	       	        }
+
 	  if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0) {
 	      if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader_DME1, TxData_DME1) != HAL_OK) {
 	          printf("Błąd wysyłania wiadomości\n");
@@ -200,11 +399,51 @@ int main(void)
 	  }
 	   CheckCANErrors();
 	  // HAL_UART_Transmit(&huart2, frame, sizeof(frame), HAL_MAX_DELAY);
-	   if (HAL_UART_Receive(&huart2, rxData, 1, HAL_MAX_DELAY) == HAL_OK) {
+	   if (HAL_UART_Receive(&huart2, rxData, 1, 100) == HAL_OK) {
 	              // Odebrano dane — wyślij je z powrotem przez USART
 		   printf("Odebrano: 0x%02X (%c)\r\n", rxData[0], rxData[0]);
 	          }
-	   HAL_Delay(10);
+	 //  HAL_LIN_SendBreak(&huart2);
+	  // HAL_UART_Transmit(&huart2, frame, sizeof(frame), 100);
+
+	   //HAL_UART_Transmit(&huart2, frame2, sizeof(frame), HAL_MAX_DELAY);
+	  // printf("working\n");
+	   // HAL_UART_Transmit(&huart2, piecpiec		, sizeof(piecpiec), 100);
+	   uint8_t lf = 0x0A;  // LF (Line Feed) w ASCII
+	     // HAL_Delay(1000);  // Poczekaj 1 sekundę
+
+		  //HAL_LIN_SendBreak(&huart2);
+		  //HAL_UART_Transmit(&huart2, highBeam1, sizeof(highBeam1), 100);
+		    // HAL_Delay(1000);  // Poczekaj 1 sekundę
+		//  HAL_UART_Transmit(&huart2, highBeam2, sizeof(highBeam2), 100);
+		   //  HAL_Delay(1000);  // Poczekaj 1 sekundę
+		  //HAL_UART_Transmit(&huart2, highBeam3, sizeof(highBeam3), 100);
+		 //    HAL_Delay(1000);  // Poczekaj 1 sekundę
+
+		//  HAL_UART_Transmit(&huart2, piecpiec, sizeof(piecpiec), 100);
+		 // HAL_Delay(100);
+		 // HAL_UART_Transmit(&huart2, turnRight, sizeof(turnRight), 100);
+		 // HAL_Delay(500);
+		 //HAL_UART_Transmit(&huart2, testing, sizeof(testing), 500);
+		// send_cluster_request(0x1A, 0x12, 0x00, 0x00);
+
+		// send_cluster_request(0x7, 0x00, 0xff, 0xff);
+		 //    HAL_Delay(1000);  // Poczekaj 1 sekundę
+
+		 // HAL_UART_Transmit(&huart2, highBeam5, sizeof(highBeam5), 100);
+		 //Set_PWM_Frequency(100);
+		 // HAL_Delay(10);  // Poczekaj chwilę, aby USART mógł zakończyć transmisję
+
+		  //HAL_UART_Transmit(&huart2, &lf, 1, HAL_MAX_DELAY);  // Wysyłanie LF
+
+	      uint8_t turn_left_data[] = {0xD0 ,0x08 ,0xBF ,0x5B ,0x40 ,0x00 ,0x04 ,0x00 ,0x00 ,0x78};
+	      uint8_t identifier = 0x5A;  // Przykładowy identyfikator ramki
+	      //Run_PWM_SpeedLoop;
+
+	      //send_lin_frame(identifier, turn_left_data, sizeof(turn_left_data));
+	  // HAL_Delay(200);
+	   //HAL_LIN_SendBreak(&huart2);
+	   //HAL_UART_Transmit(&huart2, lin_frame, sizeof(lin_frame), 100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -223,26 +462,25 @@ void SystemClock_Config(void)
 
   /** Configure the main internal regulator output voltage
   */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_CSI;
-  RCC_OscInitStruct.CSIState = RCC_CSI_ON;
-  RCC_OscInitStruct.CSICalibrationValue = RCC_CSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_CSI;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 1;
-  RCC_OscInitStruct.PLL.PLLN = 32;
+  RCC_OscInitStruct.PLL.PLLN = 62;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 16;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
-  RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1_VCIRANGE_2;
+  RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1_VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1_VCORANGE_WIDE;
-  RCC_OscInitStruct.PLL.PLLFRACN = 0;
+  RCC_OscInitStruct.PLL.PLLFRACN = 4096;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -259,14 +497,14 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB3CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
 
   /** Configure the programming delay
   */
-  __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_1);
+  __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_2);
 }
 
 /**
@@ -328,7 +566,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x10707DBC;
+  hi2c1.Init.Timing = 0x60808CD3;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -404,7 +642,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 0 */
 
-  TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
   TIM_OC_InitTypeDef sConfigOC = {0};
   TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
@@ -413,7 +651,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 49;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -423,13 +661,12 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-  sSlaveConfig.InputTrigger = TIM_TS_ITR6;
-  if (HAL_TIM_SlaveConfigSynchro(&htim1, &sSlaveConfig) != HAL_OK)
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -441,12 +678,16 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 5000;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
   sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
   if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
@@ -589,7 +830,7 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
   huart2.Init.BaudRate = 9600;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.WordLength = UART_WORDLENGTH_9B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_EVEN;
   huart2.Init.Mode = UART_MODE_TX_RX;
@@ -656,12 +897,19 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(Washer_Fluid_Lvl_STM_GPIO_Port, Washer_Fluid_Lvl_STM_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pins : PC13 K_BUS_SLP_Pin */
-  GPIO_InitStruct.Pin = GPIO_PIN_13|K_BUS_SLP_Pin;
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : K_BUS_SLP_Pin */
+  GPIO_InitStruct.Pin = K_BUS_SLP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(K_BUS_SLP_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Backlight_STM_Pin */
   GPIO_InitStruct.Pin = Backlight_STM_Pin;
@@ -778,7 +1026,12 @@ void ReceiveCANFrame() {
         printf("Brak ramek do odebrania\n");
     }
 }
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim == &htim1) {
+    HAL_GPIO_TogglePin(D2_GPIO_Port, D2_Pin);
+  }
+}
 /* USER CODE END 4 */
 
 /**
@@ -795,6 +1048,8 @@ void Error_Handler(void)
   while (1)
   {
   }
+
+
   /* USER CODE END Error_Handler_Debug */
 }
 

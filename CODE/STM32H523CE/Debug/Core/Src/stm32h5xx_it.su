@@ -9,5 +9,8 @@
 ../Core/Src/stm32h5xx_it.c:184:6:SysTick_Handler	8	static
 ../Core/Src/stm32h5xx_it.c:205:6:FDCAN1_IT0_IRQHandler	8	static
 ../Core/Src/stm32h5xx_it.c:219:6:FDCAN1_IT1_IRQHandler	8	static
-../Core/Src/stm32h5xx_it.c:233:6:USART1_IRQHandler	8	static
-../Core/Src/stm32h5xx_it.c:247:6:ICACHE_IRQHandler	8	static
+../Core/Src/stm32h5xx_it.c:233:6:TIM1_BRK_IRQHandler	8	static
+../Core/Src/stm32h5xx_it.c:247:6:TIM1_UP_IRQHandler	8	static
+../Core/Src/stm32h5xx_it.c:261:6:TIM1_TRG_COM_IRQHandler	8	static
+../Core/Src/stm32h5xx_it.c:275:6:TIM1_CC_IRQHandler	8	static
+../Core/Src/stm32h5xx_it.c:289:6:ICACHE_IRQHandler	8	static
