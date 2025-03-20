@@ -12,6 +12,7 @@ Connecting e46 320D gauge to beamng drive
 7. [Notes](#Notes)
 8. [CAN Frames](#CAN_Frames)
 9. [Qt App](#Qt_App)
+10. [ESP CODE](#ESP_CODE)
 ---
 
 ## Schematic
@@ -358,3 +359,78 @@ local DL_SPARE        = 2 ^ 11   -- N/A
 
 -#pragma pack(push, 1) - sets the alignment of structure members to 1 byte, which means that the compiler does not add any additional bytes (padding) between structure fields.
 -#pragma pack(pop) - restores the default alignment of structure members.
+
+## ESP CODE
+
+- HELLO WORLD
+```
+ets Jul 29 2019 12:21:46
+
+rst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:6276
+load:0x40078000,len:15716
+load:0x40080400,len:4
+ho 8 tail 4 room 4
+load:0x40080404,len:3860
+entry 0x4008063c
+I (31) boot: ESP-IDF v5.4 2nd stage bootloader
+I (31) boot: compile time Mar 19 2025 23:10:52
+I (31) boot: Multicore bootloader
+I (32) boot: chip revision: v3.1
+I (35) boot.esp32: SPI Speed      : 40MHz
+I (39) boot.esp32: SPI Mode       : DIO
+I (42) boot.esp32: SPI Flash Size : 2MB
+I (46) boot: Enabling RNG early entropy source...
+I (50) boot: Partition Table:
+I (53) boot: ## Label            Usage          Type ST Offset   Length
+I (59) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (66) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (72) boot:  2 factory          factory app      00 00 00010000 00100000
+I (79) boot: End of partition table
+I (82) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=097e4h ( 38884) map
+I (103) esp_image: segment 1: paddr=0001980c vaddr=3ff80000 size=0001ch (    28) load
+I (103) esp_image: segment 2: paddr=00019830 vaddr=3ffb0000 size=02314h (  8980) load
+I (110) esp_image: segment 3: paddr=0001bb4c vaddr=40080000 size=044cch ( 17612) load
+I (121) esp_image: segment 4: paddr=00020020 vaddr=400d0020 size=133fch ( 78844) map
+I (149) esp_image: segment 5: paddr=00033424 vaddr=400844cc size=08734h ( 34612) load
+I (169) boot: Loaded app from partition at offset 0x10000
+I (169) boot: Disabling RNG early entropy source...
+I (179) cpu_start: Multicore app
+I (188) cpu_start: Pro cpu start user code
+I (188) cpu_start: cpu freq: 160000000 Hz
+I (188) app_init: Application information:
+I (188) app_init: Project name:     hello_world
+I (192) app_init: App version:      0e5d73a-dirty
+I (196) app_init: Compile time:     Mar 19 2025 23:10:41
+I (201) app_init: ELF file SHA256:  b38304511...
+I (206) app_init: ESP-IDF:          v5.4
+I (209) efuse_init: Min chip rev:     v0.0
+I (213) efuse_init: Max chip rev:     v3.99
+I (217) efuse_init: Chip rev:         v3.1
+I (221) heap_init: Initializing. RAM available for dynamic allocation:
+I (227) heap_init: At 3FFAE6E0 len 00001920 (6 KiB): DRAM
+I (232) heap_init: At 3FFB2BD0 len 0002D430 (181 KiB): DRAM
+I (238) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM
+I (243) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM
+I (249) heap_init: At 4008CC00 len 00013400 (77 KiB): IRAM
+I (255) spi_flash: detected chip: generic
+I (257) spi_flash: flash io: dio
+W (260) spi_flash: Detected size(4096k) larger than the size in the binary image header(2048k). Using the size in the binary image header.
+I (273) main_task: Started on CPU0
+I (283) main_task: Calling app_main()
+Hello world!
+This is esp32 chip with 2 CPU core(s), WiFi/BTBLE, silicon revision v3.1, 2MB external flash
+Minimum free heap size: 305356 bytes
+Restarting in 10 seconds...
+Restarting in 9 seconds...
+Restarting in 8 seconds...
+Restarting in 7 seconds...
+```
+
+
+working on at comands - custom at pins
+
+https://docs.espressif.com/projects/esp-at/en/release-v2.2.0.0_esp32c3/Compile_and_Develop/How_to_clone_project_and_compile_it.html

@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "hello_world",
-    "project_version":    "8105fa4",
+    "project_version":    "0e5d73a-dirty",
     "project_path":       "E:/git_repos/BMW_E46_Gauge/CODE/ESP/hello_world",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.4",
     "build_dir":          "E:/git_repos/BMW_E46_Gauge/CODE/ESP/hello_world/build",
