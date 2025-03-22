@@ -13,6 +13,7 @@ Connecting e46 320D gauge to beamng drive
 8. [CAN Frames](#CAN_Frames)
 9. [Qt App](#Qt_App)
 10. [ESP CODE](#ESP_CODE)
+11. [AT Comands](#AT_Comands)
 ---
 
 ## Schematic
@@ -433,4 +434,49 @@ Restarting in 7 seconds...
 
 working on at comands - custom at pins
 
-https://docs.espressif.com/projects/esp-at/en/release-v2.2.0.0_esp32c3/Compile_and_Develop/How_to_clone_project_and_compile_it.html
+https://docs.espressif.com/projects/esp-at/en/release-v2.4.0.0/esp32/Compile_and_Develop/How_to_clone_project_and_compile_it.html
+
+env variable -   . $Env:IDF_PATH\export.ps1
+
+cd ~/esp
+
+git clone --recursive https://github.com/espressif/esp-at.git
+
+change factory_param_data.csv in
+
+C:\Users\patti\esp\esp-at\components\customized_partitions\raw_data\factory_param
+
+to PLATFORM_ESP32,WROOM-32,"TX:17 RX:16",4,78,0,1,13,CN,115200,1,3,-1,-1
+
+cd .\esp-at\
+
+python build.py install
+
+python build.py menuconfig 
+
+disable bluetooth and at comands flow control
+
+python build.py build
+
+python build.py -p COM5 flash
+
+
+
+## AT Comands
+
+- AT - test
+- AT+RST - reset
+- AT+GMR - get version
+- AT+CWMODE? - get wifi mode
+- AT+CWMODE=1 - set wifi mode to station
+- AT+CWJAP="SSID","PASSWORD" - connect to wifi
+- AT+CIFSR - get ip
+- AT+CIPSTART="UDP","0.0.0.0",12345,12345,2 - start udp server - now only this at stm start 
+- AT+CIPRECVMODE=1 - set recive mode
+
+
+
+h2B h49 h50 h44 h2C h39 h36 h3A h00 h00 h00 h00 h62 h65 h61 h6D h00 hC0 h02 h00 h55 hC5 hB5 h38 h32 hEE h1B h44 h00 h00 h00 h00 h96 h60 hD1 h41 h81 hA0 h7E h3F h00 h00 h00 h00 h5B h8E hE2 h41 h66 h07 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h9A h99 h99 h3E h00 h00 h80 h3F h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 
+
+
+h2B h49 h50 h44 h2C h39 h36 h3A h00 h00 h00 h00 h62 h65 h61 h6D h00 hC0 h02 h00 h55 h18 h25 h39 h80 h6C h1C h44 h00 h00 h00 h00 h6F h62 hD1 h41 h79 hA0 h7E h3F h00 h00 h00 h00 h6D h90 hE2 h41 h66 h07 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h9A h99 h99 h3E h00 h00 h80 h3F h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00     

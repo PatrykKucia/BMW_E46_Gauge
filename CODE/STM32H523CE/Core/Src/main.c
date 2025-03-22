@@ -39,7 +39,7 @@
 #define BEAM_HIGH         0x04
 #define BEAM_LOW          0x02
 #define PARKING           0x01
-
+#define BUFFER_SIZE 128  // Rozmiar bufora odbiorczego
 #define CCM_LIC_PLATE     0x80
 #define CCM_TURN_RIGHT    0x40
 #define CCM_TURN_LEFT     0x20
@@ -88,7 +88,16 @@ FDCAN_TxHeaderTypeDef RxHeader2;
 uint8_t               TxData_DME1[8]= {0xff, 0xff, 0xff, 0x1e, 0x55, 0x66, 0x77, 0x88};
 uint8_t               RxData2[8];
 uint32_t              TxMailbox;
+#define RX_BUFFER_SIZE 256
 
+uint8_t rxBuffer[RX_BUFFER_SIZE];  // Bufor na całą linię
+uint8_t rxDatar;  // Pojedynczy bajt do odbioru
+uint16_t rxIndex = 0;
+#define UART_TIMEOUT 500  // Timeout dla UART w ms
+#define WIFI_SSID "PLAY_Swiatlowod_19A1"
+#define WIFI_PASS "t8Xv9auf7Z#D"
+
+uint8_t uartRxBuffer[256]; // Bufor dla odbieranych danych
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,15 +111,130 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ICACHE_Init(void);
 /* USER CODE BEGIN PFP */
+typedef struct {
+    uint32_t time;
+    char car[4];
+    uint16_t flags;
+    char gear;
+    char plid;
+    float speed;
+    float rpm;
+    float turbo;
+    float engTemp;
+    float fuel;
+    float oilPressure;
+    float oilTemp;
+    uint32_t dashLights;
+    uint32_t showLights;
+    float throttle;
+    float brake;
+    float clutch;
+    char display1[16];
+    char display2[16];
+    int id;
+} xxx;
+
+// Bufor na dane odbierane z ESP32
+uint8_t rx_buffer[256];
+uint8_t tx_buffer[256];
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+typedef enum {
+    STATE_SEARCHING,  // Szukanie nagłówka "+IPD"
+    STATE_READING_LEN, // Odczyt długości pakietu
+    STATE_READING_DATA // Odczyt danych
+} ParserState;
+
+ParserState state = STATE_SEARCHING;
+uint16_t packet_length = 0;  // Długość pakietu
+uint16_t data_index = 0;     // Indeks w buforze danych
+uint8_t packet_buffer[256];  // Bufor na dane pakietu
+void ProcessByte(uint8_t byte) {
+    static uint8_t ipd_header_index = 0;
+    static const uint8_t ipd_header[] = {0x2B, 0x49, 0x50, 0x44};  // "+IPD" w hex
+
+    switch (state) {
+        case STATE_SEARCHING:
+            if (byte == ipd_header[ipd_header_index]) {
+                ipd_header_index++;
+                if (ipd_header_index == sizeof(ipd_header)) {
+                    // Znaleziono pełny nagłówek +IPD
+                    state = STATE_READING_LEN;
+                    ipd_header_index = 0;
+                    packet_length = 0;
+                }
+            } else {
+                ipd_header_index = (byte == ipd_header[0]) ? 1 : 0;
+            }
+            break;
+
+        case STATE_READING_LEN:
+            if (byte >= '0' && byte <= '9') {
+                packet_length = packet_length * 10 + (byte - '0');
+                if (packet_length >= BUFFER_SIZE) {
+                    state = STATE_SEARCHING;
+                    packet_length = 0;
+                }
+            } else if (byte == ':') {
+                state = STATE_READING_DATA;
+                data_index = 0;
+            } else {
+                state = STATE_SEARCHING;
+                packet_length = 0;
+            }
+            break;
+
+        case STATE_READING_DATA:
+            if (data_index < packet_length && data_index < BUFFER_SIZE) {
+                packet_buffer[data_index++] = byte;
+            }
+
+            if (data_index >= packet_length) {
+                // Otrzymano pełny pakiet
+                if (packet_length >= sizeof(xxx)) {
+                    xxx received_packet;
+                    memcpy(&received_packet, packet_buffer, sizeof(xxx));
+
+                    // Wypisanie wartości
+                    printf("Speed: %.2f m/s\n", received_packet.speed);
+                    printf("RPM: %.2f\n", received_packet.rpm);
+                    printf("Throttle: %.2f\n", received_packet.throttle);
+                    printf("Brake: %.2f\n", received_packet.brake);
+                    printf("Clutch: %.2f\n", received_packet.clutch);
+                    printf("Gear: %d\n", received_packet.gear);
+                    printf("Turbo: %.2f BAR\n", received_packet.turbo);
+                    printf("Engine Temp: %.2f C\n", received_packet.engTemp);
+                }
+
+                state = STATE_SEARCHING;
+            }
+            break;
+    }
+}
+
+void ESP32_SendCommand(const char* command) {
+    HAL_UART_Transmit(&huart1, (uint8_t*)command, strlen(command), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart1, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);  // Końcówka komendy AT
+    HAL_Delay(100);  // Czekaj na odpowiedź
+}
+
+// Funkcja do odbierania danych z ESP32
+void ESP32_ReceiveData(uint8_t* buffer, uint16_t size) {
+    HAL_UART_Receive(&huart1, buffer, size, HAL_MAX_DELAY);
+}
+
+// Funkcja do parsowania danych UDP
+void ParseUDPPacket(uint8_t* data, xxx* packet) {
+    memcpy(packet, data, sizeof(xxx));  // Skopiuj dane do struktury
+}
 int __io_putchar(int ch) //function used to print() in usart
 {
   if (ch == '\n') {
     __io_putchar('\r');
+
   }
 
   HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
@@ -144,7 +268,7 @@ void Set_PWM_Frequency(uint16_t speed_kmh) {
     }
 
     if (arr_value > 65535) arr_value = 65535;  // Ograniczenie ARR do 16 bitów
-    printf("Speed: %d km/h, Freq: %lu Hz, PSC: %lu, ARR: %lu\n", speed_kmh, freq, psc_value, arr_value);
+    //printf("Speed: %d km/h, Freq: %lu Hz, PSC: %lu, ARR: %lu\n", speed_kmh, freq, psc_value, arr_value);
 
     __HAL_TIM_SET_PRESCALER(&htim1, psc_value);
     __HAL_TIM_SET_AUTORELOAD(&htim1, arr_value);
@@ -213,10 +337,25 @@ int main(void)
   MX_ICACHE_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_OC_Start_IT(&htim1, TIM_CHANNEL_1);
-
+  //initESP();
   //TIM1->CCR1 = 50;
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+  // Konfiguracja ESP32 za pomocą komend AT
+     ESP32_SendCommand("AT+RST");  // Resetuj ESP32
+    // HAL_Delay(1000);
+    // ESP32_SendCommand("AT+CWMODE=1");  // Ustaw tryb stacji (klient Wi-Fi)
+    // HAL_Delay(1000);
+    // ESP32_SendCommand("AT+CWJAP=\"PLAY_Swiatlowod_19A1\",\"t8Xv9auf7Z#D\"");  // Połącz z Wi-Fi
+     HAL_Delay(5000);
+     ESP32_SendCommand("AT+CIPSTART=\"UDP\",\"0.0.0.0\",12345,12345,2");  // Ustaw tryb UDP
+     HAL_Delay(1000);
+     //ESP32_SendCommand("AT+CIPRECVMODE=1");  // Włącz tryb odbioru danych
+     //HAL_Delay(1000);
+     xxx received_packet;
+
+
   //HAL_FDCAN_ConfigTxDelayCompensation(&hfdcan1, 5, 0);
   //HAL_FDCAN_EnableTxDelayCompensation(&hfdcan1);
 
@@ -370,12 +509,42 @@ int main(void)
   uint8_t rxData[1]; // Bufor na 1 bajt danych
   uint16_t speed = 0;
 	    int8_t direction = 1; // 1 = rośnie, -1 = maleje
+
+	   // HAL_UART_Receive_IT(&huart1, &rxDatar, 1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  uint8_t byte;
+	          if (HAL_UART_Receive(&huart1, &byte, 1, 300) == HAL_OK) {
+	              ProcessByte(byte);
+	          }
+//	  ESP32_ReceiveData(rx_buffer, sizeof(rx_buffer));
+//
+//	          // Sprawdź, czy odebrano pakiet UDP
+//	          if (strstr((char*)rx_buffer, "+IPD") != NULL) {
+//	              // Parsuj dane UDP do struktury
+//	              ParseUDPPacket(rx_buffer, &received_packet);
+//
+//	              // Przetwarzaj odebrane dane
+//	              printf("Speed: %.2f m/s\n", received_packet.speed);
+//	              printf("RPM: %.2f\n", received_packet.rpm);
+//	              printf("Throttle: %.2f\n", received_packet.throttle);
+//	              printf("Brake: %.2f\n", received_packet.brake);
+//	              printf("Clutch: %.2f\n", received_packet.clutch);
+//	              printf("Gear: %d\n", received_packet.gear);
+//	              printf("Turbo: %.2f BAR\n", received_packet.turbo);
+//	              printf("Engine Temp: %.2f C\n", received_packet.engTemp);
+//	              printf("Fuel: %.2f\n", received_packet.fuel);
+//	              printf("Oil Temp: %.2f C\n", received_packet.oilTemp);
+//	              printf("Dash Lights: %u\n", received_packet.dashLights);
+//	              printf("Show Lights: %u\n", received_packet.showLights);
+//	          }
+//
+//	          HAL_Delay(100);  // Czekaj przed kolejnym odczytem
+
 
 	        Set_PWM_Frequency(speed);
 	        HAL_Delay(1);
@@ -388,21 +557,32 @@ int main(void)
 	       	            direction = 1; // Odwracamy kierunek
 	       	        }
 
-	  if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0) {
-	      if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader_DME1, TxData_DME1) != HAL_OK) {
-	          printf("Błąd wysyłania wiadomości\n");
-	          Error_Handler();
-	      }
-	  } else {
-		  CheckCANErrors();
-	      printf("Bufor nadawczy pełny, nie można dodać wiadomości\n");
-	  }
-	   CheckCANErrors();
+//	  if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0) {
+//	      if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader_DME1, TxData_DME1) != HAL_OK) {
+//	          printf("Błąd wysyłania wiadomości\n");
+//	          Error_Handler();
+//	      }
+//	  } else {
+//		  CheckCANErrors();
+//	 //x     printf("Bufor nadawczy pełny, nie można dodać wiadomości\n");
+//	  }
+//	   CheckCANErrors();
+
+	   char at_response[64]; // Bufor na odpowiedź
+	//   HAL_UART_Transmit(&huart1, (uint8_t*)"AT\r\n", 4, HAL_MAX_DELAY);
+	  // HAL_UART_Receive(&huart1, (uint8_t*)at_response, sizeof(at_response), 500);
+
+//	   if (strstr(at_response, "OK") != NULL) {
+//	       HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, GPIO_PIN_SET); // Zapal LED
+//	   } else {
+//	       HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, GPIO_PIN_RESET); // Zgaś LED
+//	   }
+
 	  // HAL_UART_Transmit(&huart2, frame, sizeof(frame), HAL_MAX_DELAY);
-	   if (HAL_UART_Receive(&huart2, rxData, 1, 100) == HAL_OK) {
-	              // Odebrano dane — wyślij je z powrotem przez USART
-		   printf("Odebrano: 0x%02X (%c)\r\n", rxData[0], rxData[0]);
-	          }
+	 //  if (HAL_UART_Receive(&huart2, rxData, 1, HAL_MAX_DELAY) == HAL_OK) {
+	  //            // Odebrano dane — wyślij je z powrotem przez USART
+	//	   printf("Odebrano: 0x%02X (%c)\r\n", rxData[0], rxData[0]);
+	   //       }
 	 //  HAL_LIN_SendBreak(&huart2);
 	  // HAL_UART_Transmit(&huart2, frame, sizeof(frame), 100);
 
@@ -807,11 +987,12 @@ static void MX_USART1_UART_Init(void)
   {
     Error_Handler();
   }
+}
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
 
-}
+
 
 /**
   * @brief USART2 Initialization Function
@@ -964,7 +1145,7 @@ void CheckCANErrors() {
     uint32_t error = HAL_FDCAN_GetError(&hfdcan1);
 
     if (error == HAL_FDCAN_ERROR_NONE) {
-        printf("Brak błędów CAN\n");
+      //  printf("Brak błędów CAN\n");
     } else {
         if (error & HAL_FDCAN_ERROR_TIMEOUT) {
             printf(" HAL_FDCAN_ERROR_TIMEOUT\n");
@@ -1032,6 +1213,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_GPIO_TogglePin(D2_GPIO_Port, D2_Pin);
   }
 }
+
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+//    if (huart->Instance == USART1) {
+//        if (rxDatar == '\n' || rxIndex >= RX_BUFFER_SIZE - 1) {
+//            rxBuffer[rxIndex] = '\0';  // Zakończ string
+//            UART1_Print((char*)rxBuffer);  // Wyświetl na terminalu
+//            rxIndex = 0;  // Reset bufora
+//        } else {
+//            rxBuffer[rxIndex++] = rxDatar;  // Zapisz bajt do bufora
+//        }
+//        HAL_UART_Receive_IT(&huart1, &rxDatar, 1);  // Restart odbioru
+//    }
+//}
+
+
+void UART1_Print(char *msg) {
+    HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart1, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);  // Nowa linia
+}
+
+
 /* USER CODE END 4 */
 
 /**
