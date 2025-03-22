@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,15 +89,15 @@ FDCAN_TxHeaderTypeDef RxHeader2;
 uint8_t               TxData_DME1[8]= {0xff, 0xff, 0xff, 0x1e, 0x55, 0x66, 0x77, 0x88};
 uint8_t               RxData2[8];
 uint32_t              TxMailbox;
-#define RX_BUFFER_SIZE 256
+#define RX_BUFFER_SIZE 25600
 
-uint8_t rxBuffer[RX_BUFFER_SIZE];  // Bufor na całą linię
+
 uint8_t rxDatar;  // Pojedynczy bajt do odbioru
-uint16_t rxIndex = 0;
+
 #define UART_TIMEOUT 500  // Timeout dla UART w ms
 #define WIFI_SSID "PLAY_Swiatlowod_19A1"
 #define WIFI_PASS "t8Xv9auf7Z#D"
-
+#define BUFFER_SIZE 256  // Zapasowy bufor na dane
 uint8_t uartRxBuffer[256]; // Bufor dla odbieranych danych
 /* USER CODE END PV */
 
@@ -110,6 +111,7 @@ static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_ICACHE_Init(void);
+#define MAX_PACKET_SIZE 128
 /* USER CODE BEGIN PFP */
 typedef struct {
     uint32_t time;
@@ -135,9 +137,12 @@ typedef struct {
 } xxx;
 
 // Bufor na dane odbierane z ESP32
-uint8_t rx_buffer[256];
-uint8_t tx_buffer[256];
 
+char rxBuffer[BUFFER_SIZE];
+uint8_t packetBuffer[MAX_PACKET_SIZE];
+volatile int rxIndex = 0;
+int packetLength = 0;
+bool packetReady = false;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -230,28 +235,17 @@ void ESP32_ReceiveData(uint8_t* buffer, uint16_t size) {
 void ParseUDPPacket(uint8_t* data, xxx* packet) {
     memcpy(packet, data, sizeof(xxx));  // Skopiuj dane do struktury
 }
-int __io_putchar(int ch) //function used to print() in usart
-{
-  if (ch == '\n') {
-    __io_putchar('\r');
-
-  }
-
-  HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
-
-  return 1;
-}
-uint32_t PWM_frequency(uint8_t speed) {
-    if (speed < MIN_SPEED) {
-        speed = MIN_SPEED;
-    } else if (speed > MAX_SPEED) {
-        speed = MAX_SPEED;
-    }
-
-    // Przemiana liniowa prędkości na częstotliwość PWM
-    uint32_t freq = MIN_FREQ + (uint32_t)((float)(speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED) * (MAX_FREQ - MIN_FREQ));
-    return freq;
-}
+//int __io_putchar(int ch) //function used to print() in usart
+//{
+//  if (ch == '\n') {
+//    __io_putchar('\r');
+//
+//  }
+//
+//  HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+//
+//  return 1;
+//}
 void Set_PWM_Frequency(uint16_t speed_kmh) {
     // Poprawiona interpolacja częstotliwości
     uint32_t freq = 100 + ((1700 - 100) * speed_kmh) / 250;
@@ -295,7 +289,7 @@ void PWM_UpdateFrequency(TIM_HandleTypeDef *htim, uint8_t speed) {
      __HAL_TIM_SET_AUTORELOAD(htim, arr);
      __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_2, arr);  // Ustawienie wypełnienia 50%
  }
-
+xxx packet;
 /* USER CODE END 0 */
 
 /**
@@ -333,6 +327,8 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
+ // HAL_UART_Receive_IT(&huart1, &rxDatar, 1);
+  HAL_UART_Receive_IT(&huart1, (uint8_t*)&rxBuffer[rxIndex], 1);
   MX_USART2_UART_Init();
   MX_ICACHE_Init();
   /* USER CODE BEGIN 2 */
@@ -510,17 +506,17 @@ int main(void)
   uint16_t speed = 0;
 	    int8_t direction = 1; // 1 = rośnie, -1 = maleje
 
-	   // HAL_UART_Receive_IT(&huart1, &rxDatar, 1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  uint8_t byte;
-	          if (HAL_UART_Receive(&huart1, &byte, 1, 300) == HAL_OK) {
-	              ProcessByte(byte);
-	          }
+//	  uint8_t byte;
+//	          if (HAL_UART_Receive(&huart1, &byte, 1, 300) == HAL_OK) {
+//	              ProcessByte(byte);
+//	          }
 //	  ESP32_ReceiveData(rx_buffer, sizeof(rx_buffer));
 //
 //	          // Sprawdź, czy odebrano pakiet UDP
@@ -544,18 +540,18 @@ int main(void)
 //	          }
 //
 //	          HAL_Delay(100);  // Czekaj przed kolejnym odczytem
+	         int speed_kph = packet.speed * 3.6;
 
-
-	        Set_PWM_Frequency(speed);
-	        HAL_Delay(1);
-
-	        speed += direction;
-	        if (speed >= 250) {
-	            direction = -1; // Odwracamy kierunek
-	        }
-	        else if (speed <= 0) {
-	       	            direction = 1; // Odwracamy kierunek
-	       	        }
+	        Set_PWM_Frequency(speed_kph);
+//	        HAL_Delay(1);
+//
+//	        speed += direction;
+//	        if (speed >= 250) {
+//	            direction = -1; // Odwracamy kierunek
+//	        }
+//	        else if (speed <= 0) {
+//	       	            direction = 1; // Odwracamy kierunek
+//	       	        }
 
 //	  if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0) {
 //	      if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader_DME1, TxData_DME1) != HAL_OK) {
@@ -1215,19 +1211,107 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 //void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+//	  HAL_GPIO_TogglePin(D2_GPIO_Port, D2_Pin);
+//	  HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);
 //    if (huart->Instance == USART1) {
-//        if (rxDatar == '\n' || rxIndex >= RX_BUFFER_SIZE - 1) {
-//            rxBuffer[rxIndex] = '\0';  // Zakończ string
-//            UART1_Print((char*)rxBuffer);  // Wyświetl na terminalu
-//            rxIndex = 0;  // Reset bufora
-//        } else {
-//            rxBuffer[rxIndex++] = rxDatar;  // Zapisz bajt do bufora
-//        }
+//       // if (rxDatar == '\n' || rxIndex >= RX_BUFFER_SIZE - 1) {
+//            //rxBuffer[rxIndex] = '\0';  // Zakończ string
+//    	rxBuffer[rxIndex++] = rxDatar;
+//           // UART1_Print((char*)rxBuffer);  // Wyświetl na terminalu
+//            //rxIndex = 0;  // Reset bufora
+//        //} else {
+//            //  // Zapisz bajt do bufora
+//        //}
 //        HAL_UART_Receive_IT(&huart1, &rxDatar, 1);  // Restart odbioru
 //    }
 //}
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+//    if (huart->Instance == USART1) {  // Sprawdzamy, czy przerwanie pochodzi z USART1
+//    		  HAL_GPIO_TogglePin(D2_GPIO_Port, D2_Pin);
+//        if (rxIndex < BUFFER_SIZE - 1) {
+//            rxIndex++;
+//        }
+//        else{
+//        rxBuffer[rxIndex] = '\0';  // Zakończenie stringa
+//        rxIndex = 0;  // Reset bufora po przetworzeniu
+//        }
+//
+//        char* start = strstr(rxBuffer, "+IPD,");//rawdza, czy w buforze znajduje się ciąg +IPD, (nagłówek ESP32).
+//
+//        if (start) {
+//        	  HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);
+//            int dataLength = atoi(start + 5);  // Pobranie długości pakietu (za IPD)
+//            char* dataStart = strchr(start, ':');// szuka pierwszego : po +IPD,.
+//            if (dataStart && dataLength > 0) {
+//                dataStart++;
+//                parseData(dataStart, dataLength);
+//                rxIndex = 0;  // Reset bufora po przetworzeniu
+//            }
+//        }
+//        HAL_UART_Receive_IT(&huart1, (uint8_t*)&rxBuffer[rxIndex], 1);  // Restart odbioru
+//    }
+//}
+//void parseData(const char* data, int length) {
+//    if (length < sizeof(xxx)) {
+//        printf("Błąd: Zbyt mało danych\n");
+//        return;
+//    }
+//    xxx packet;
+//    memcpy(&packet, data, sizeof(xxx));//memcpy kopiuje bajty z jednego miejsca w pamięci do drugiego. W tym przypadku kopiuje bajty z data do packet
+//
+//    printf("Car: %s\n", packet.car);
+//    printf("Speed: %.2f m/s\n", packet.speed);
+//    printf("RPM: %.2f\n", packet.rpm);
+//    printf("Throttle: %.2f\n", packet.throttle);
+//}
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART1) {
+    	 HAL_GPIO_TogglePin(D2_GPIO_Port, D2_Pin);
+        if (rxIndex < BUFFER_SIZE - 1) {
+            rxBuffer[rxIndex++] = huart->Instance->RDR;  // Odczytaj dane z rejestru danych UART
+        } else {
+            rxBuffer[rxIndex] = '\0';  // Zakończenie stringa
+            rxIndex = 0;  // Reset bufora po przetworzeniu
+        }
 
+        char* start = strstr((char*)rxBuffer, "+IPD,");  // Sprawdź, czy w buforze znajduje się ciąg +IPD,
 
+        if (start) {
+            packetLength = atoi(start + 5);  // Pobranie długości pakietu (za IPD)
+            char* dataStart = strchr(start, ':');  // Szuka pierwszego : po +IPD,
+
+            if (dataStart && packetLength > 0) {
+                dataStart++;
+                if (packetLength <= MAX_PACKET_SIZE) {
+                    memcpy(packetBuffer, dataStart, packetLength);  // Kopiuj dane do packetBuffer
+                    packetReady = true;  // Ustaw flagę, że pakiet jest gotowy do przetworzenia
+                }
+                rxIndex = 0;  // Reset bufora po przetworzeniu
+            }
+        }
+
+        if (packetReady) {
+            parseData((char*)packetBuffer, packetLength);  // Parsuj dane
+            packetReady = false;  // Zresetuj flagę
+        }
+
+        HAL_UART_Receive_IT(&huart1, (uint8_t*)&rxBuffer[rxIndex], 1);  // Restart odbioru
+    }
+}
+
+void parseData(const char* data, int length) {
+    if (length < sizeof(xxx)) {
+        printf("Błąd: Zbyt mało danych\n");
+        return;
+    }
+
+    memcpy(&packet, data, sizeof(xxx));  // Kopiuj dane do struktury
+    HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);
+//    printf("Car: %s\n", packet.car);
+//    printf("Speed: %.2f m/s\n", packet.speed);
+//    printf("RPM: %.2f\n", packet.rpm);
+//    printf("Throttle: %.2f\n", packet.throttle);
+}
 void UART1_Print(char *msg) {
     HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen(msg), HAL_MAX_DELAY);
     HAL_UART_Transmit(&huart1, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);  // Nowa linia

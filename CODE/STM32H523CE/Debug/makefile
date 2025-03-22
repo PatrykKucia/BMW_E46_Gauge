@@ -61,7 +61,7 @@ main-build: STM32H523CE.elf secondary-outputs
 
 # Tool invocations
 STM32H523CE.elf STM32H523CE.map: $(OBJS) $(USER_OBJS) E:\git_repos\BMW_E46_Gauge\CODE\STM32H523CE\STM32H523CETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "STM32H523CE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m33 -T"E:\git_repos\BMW_E46_Gauge\CODE\STM32H523CE\STM32H523CETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32H523CE.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "STM32H523CE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m33 -T"E:\git_repos\BMW_E46_Gauge\CODE\STM32H523CE\STM32H523CETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32H523CE.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
