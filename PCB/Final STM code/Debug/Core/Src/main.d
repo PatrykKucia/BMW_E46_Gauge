@@ -15,6 +15,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_rcc_ex.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio_ex.h \
+ ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_icache.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_cortex.h \
@@ -27,8 +28,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart_ex.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_exti.h \
- ../Core/Inc/gpdma.h ../Core/Inc/main.h ../Core/Inc/memorymap.h \
- ../Core/Inc/tim.h ../Core/Inc/usart.h ../Core/Inc/gpio.h
+ ../Core/Inc/gpdma.h ../Core/Inc/main.h ../Core/Inc/icache.h \
+ ../Core/Inc/memorymap.h ../Core/Inc/tim.h ../Core/Inc/usart.h \
+ ../Core/Inc/gpio.h
 ../Core/Inc/main.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h:
 ../Core/Inc/stm32h5xx_hal_conf.h:
@@ -46,6 +48,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_rcc_ex.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio_ex.h:
+../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_icache.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_cortex.h:
@@ -60,6 +63,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_exti.h:
 ../Core/Inc/gpdma.h:
 ../Core/Inc/main.h:
+../Core/Inc/icache.h:
 ../Core/Inc/memorymap.h:
 ../Core/Inc/tim.h:
 ../Core/Inc/usart.h:

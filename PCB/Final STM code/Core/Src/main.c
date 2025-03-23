@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "gpdma.h"
+#include "icache.h"
 #include "memorymap.h"
 #include "tim.h"
 #include "usart.h"
@@ -63,11 +64,9 @@ typedef struct {
 #define RX_BUFFER_SIZE 128
 #define FRAME_SIZE 96
 #define HEADER "+IPD"
-#define MIN_SPEED 0        // 0 km/h
-#define MAX_SPEED 255      // 255 km/h
-#define MIN_FREQ 100       // 100 Hz
-#define MAX_FREQ 1770000   // 1770 kHz
-#define PCLK1_FREQ 250000000 // 250 MHz
+#define MAX_SPEED 270      // 255 km/h
+#define MIN_FREQ 50       // 100 Hz
+#define MAX_FREQ 1770  // 1770 kHz
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -85,6 +84,8 @@ uint8_t frameIndex = 0;              // Indeks do zapisu danych ramki
 bool frameReady = false;
 
 FrameData frame;
+
+float speed = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -176,8 +177,7 @@ void process_frame(void) {
     }
 }
 void Set_PWM_Frequency(uint16_t speed_kmh) {
-    // Poprawiona interpolacja częstotliwości
-    uint32_t freq = 100 + ((1700 - 100) * speed_kmh) / 250;
+    uint32_t freq = MIN_FREQ + ((MAX_FREQ - MIN_FREQ) * speed_kmh) / MAX_SPEED;
 
     uint32_t arr_value, psc_value;
 
@@ -195,10 +195,8 @@ void Set_PWM_Frequency(uint16_t speed_kmh) {
 
     __HAL_TIM_SET_PRESCALER(&htim1, psc_value);
     __HAL_TIM_SET_AUTORELOAD(&htim1, arr_value);
-    __HAL_TIM_SET_COUNTER(&htim1, 0);
+    //__HAL_TIM_SET_COUNTER(&htim1, 0);
 
-    // W niektórych przypadkach wymagane jest wygenerowanie zdarzenia aktualizacji
-    //__HAL_TIM_GENERATE_EVENT(&htim1, TIM_EVENTSOURCE_UPDATE);
 }
 /* USER CODE END 0 */
 
@@ -234,6 +232,7 @@ int main(void)
   MX_GPDMA1_Init();
   MX_USART1_UART_Init();
   MX_TIM1_Init();
+  MX_ICACHE_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   ESP32_SendCommand("AT+RST");  // Resetuj ESP32
@@ -246,26 +245,15 @@ int main(void)
   HAL_Delay(1000);
   HAL_UART_Receive_DMA(&huart1, UartBuffer, 1);
   /* USER CODE END 2 */
-  	    int8_t direction = 1; // 1 = rośnie, -1 = maleje
-  	  float speed = 0; // 1 = rośnie, -1 = maleje
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 	 // process_frame();
 	 speed = frame.speed * 3.6;
-    // Set_PWM_Frequency(speed_kph);
+     Set_PWM_Frequency(speed);
 
-        Set_PWM_Frequency(speed);
-	     //   HAL_Delay(1);
-
-	        speed += direction;
-	        if (speed >= 250) {
-	            direction = -1; // Odwracamy kierunek
-	        }
-	        else if (speed <= 0) {
-	       	            direction = 1; // Odwracamy kierunek
-	       	        }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
