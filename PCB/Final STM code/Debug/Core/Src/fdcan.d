@@ -1,6 +1,5 @@
-Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_cortex.o: \
- ../Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_cortex.c \
- ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h \
+Core/Src/fdcan.o: ../Core/Src/fdcan.c ../Core/Inc/fdcan.h \
+ ../Core/Inc/main.h ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h \
  ../Core/Inc/stm32h5xx_hal_conf.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_rcc.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h \
@@ -30,6 +29,8 @@ Drivers/STM32H5xx_HAL_Driver/Src/stm32h5xx_hal_cortex.o: \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart_ex.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_exti.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_fdcan.h
+../Core/Inc/fdcan.h:
+../Core/Inc/main.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h:
 ../Core/Inc/stm32h5xx_hal_conf.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_rcc.h:

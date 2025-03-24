@@ -27,7 +27,8 @@ Core/Src/icache.o: ../Core/Src/icache.c ../Core/Inc/icache.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim_ex.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h \
  ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart_ex.h \
- ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_exti.h
+ ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_exti.h \
+ ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_fdcan.h
 ../Core/Inc/icache.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h:
@@ -59,3 +60,4 @@ Core/Src/icache.o: ../Core/Src/icache.c ../Core/Inc/icache.h \
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart_ex.h:
 ../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_exti.h:
+../Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_fdcan.h:

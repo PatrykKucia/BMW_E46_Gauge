@@ -722,6 +722,20 @@ static void MX_FDCAN1_Init(void)
   }
   /* USER CODE BEGIN FDCAN1_Init 2 */
 
+  sFilterConfig.FilterIndex = 0;
+  sFilterConfig.FilterType = FDCAN_FILTER_RANGE;
+  sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+  sFilterConfig.FilterID1 = 0x316;
+  sFilterConfig.FilterID2 = 0x1FFFFFFF;
+
+  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
+      /* Filter configuration Error */
+      printf("[CAN] Unable to configure!\n");
+  }
+  if(HAL_FDCAN_Start(&hfdcan1)!= HAL_OK)
+  {
+   Error_Handler();
+  }
   /* USER CODE END FDCAN1_Init 2 */
 
 }
