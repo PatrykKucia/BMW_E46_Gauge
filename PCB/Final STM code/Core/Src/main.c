@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "fdcan.h"
 #include "gpdma.h"
 #include "icache.h"
 #include "memorymap.h"
@@ -30,7 +31,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "fdcan.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -87,6 +87,8 @@ bool frameReady = false;
 FrameData frame;
 
 float speed = 0;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,11 +103,6 @@ void ESP32_SendCommand(const char* command) {
     HAL_UART_Transmit(&huart1, (uint8_t*)command, strlen(command), HAL_MAX_DELAY);
     HAL_UART_Transmit(&huart1, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);  // Końcówka komendy AT
     HAL_Delay(100);  // Czekaj na odpowiedź
-}
-
-void modify_can_frame_byte(uint8_t *frame,uint8_t byte_num, uint8_t value)
-{
-	if(byte_num >)
 }
 
 void parse_frame(uint8_t *buffer) {
@@ -174,6 +171,18 @@ void parse_frame(uint8_t *buffer) {
 
     memcpy(&frame.id, &buffer[offset], sizeof(frame.id));
 
+    uint16_t hexValue_RPM = (uint16_t)(frame.rpm / 0.15625);  // Rzutowanie na uint16_t
+    uint8_t lsb = hexValue_RPM & 0xFF;  // Pobranie 8 najmłodszych bitów
+    uint8_t msb = (hexValue_RPM >> 8) & 0xFF;  // Pobranie 8 najbardziej znaczących bitów
+
+
+    uint8_t hexValue_temperature = ((frame.engTemp + 48.0) / 0.75) ;
+
+    modify_can_frame_byte(FRAME_316, 2, lsb);  // Modyfikacja bajtu w ramce CAN
+    modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
+    modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
+
+
     // W tym miejscu masz już poprawnie wypełnioną strukturę `frame`
 }
 void process_frame(void) {
@@ -239,6 +248,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   MX_ICACHE_Init();
+  MX_FDCAN1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   ESP32_SendCommand("AT+RST");  // Resetuj ESP32
@@ -250,31 +261,9 @@ int main(void)
   ESP32_SendCommand("AT+CIPSTART=\"UDP\",\"0.0.0.0\",12345,12345,2");  // Ustaw tryb UDP
   HAL_Delay(1000);
   HAL_UART_Receive_DMA(&huart1, UartBuffer, 1);
-  MX_FDCAN1_Init();
+  HAL_TIM_Base_Start_IT(&htim2);
+  InitCANFrames();
 
-  FDCAN_TxHeaderTypeDef TxHeader_DME1;
-  uint8_t               TxData_DME1[8]= {0xff, 0xff, 0xff, 0x1e, 0x55, 0x66, 0x77, 0x88};
-
-
-
-	 TxData_DME1[0] = 0x19 ;                     // LV_SWI_IGK=1, LV_F_N_ENG=0, LV_ACK_TCS=0, LV_ERR_GC=1, SF_TQD=1
-	 TxData_DME1[1] = 0x4C;      // TQI_TQR_CAN = 75%
-	 uint16_t engineSpeed = (uint16_t)(3000 / 0.15625);
-	 TxData_DME1[2] = 0xD0; // N_ENG LSB
-	 TxData_DME1[3] = (uint8_t)(engineSpeed >> 8);   // N_ENG MSB
-	 TxData_DME1[4] = (uint8_t)(60 / 0.390625);      // TQI_CAN = 60%
-	 TxData_DME1[5] = (uint8_t)(5 / 0.390625);       // TQ_LOSS_CAN = 5%
-	 TxData_DME1[6] = 0b11000000;                   // ERR_AMT_CAN bits
-	 TxData_DME1[7] = (uint8_t)(80 / 0.390625);      // TQI_MAF_CAN = 80%
-
-	TxHeader_DME1.Identifier = 0x316;  // ID ramki
-	TxHeader_DME1.IdType = FDCAN_STANDARD_ID;
-	TxHeader_DME1.TxFrameType = FDCAN_DATA_FRAME;
-	TxHeader_DME1.DataLength = FDCAN_DLC_BYTES_8;
-	TxHeader_DME1.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	TxHeader_DME1.BitRateSwitch = FDCAN_BRS_OFF;
-	TxHeader_DME1.FDFormat = FDCAN_CLASSIC_CAN;
-	TxHeader_DME1.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 
 
   /* USER CODE END 2 */
@@ -288,15 +277,7 @@ int main(void)
      Set_PWM_Frequency(speed);
 
     /* USER CODE END WHILE */
-//     if (HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1) > 0) {
-//     	      if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader_DME1, TxData_DME1) != HAL_OK) {
-//     	          printf("Błąd wysyłania wiadomości\n");
-//     	          Error_Handler();
-//     	      }
-//     	  } else {
-//     	 // printf("Bufor nadawczy pełny, nie można dodać wiadomości\n");
-//     	  }
-//HAL_Delay(10);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -393,6 +374,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         HAL_UART_Receive_DMA(&huart1, UartBuffer, 1);
     }
 }
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	 if (htim == &htim2)
+	 {
+	     SendCANFrame(FRAME_316);  // Wysyła ramkę o ID 0x316
+	     SendCANFrame(FRAME_329);  // Wysyła ramkę o ID 0x329
+	     SendCANFrame(FRAME_545);  // Wysyła ramkę o ID 0x545
+	 }
+}
+
 
 /* USER CODE END 4 */
 

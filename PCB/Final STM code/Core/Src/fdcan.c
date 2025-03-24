@@ -21,7 +21,11 @@
 #include "fdcan.h"
 
 /* USER CODE BEGIN 0 */
-
+CAN_Frame frames[FRAME_COUNT] = {
+    { .header.Identifier = 0x316, .data = {0} },
+    { .header.Identifier = 0x329, .data = {0} },
+    { .header.Identifier = 0x545, .data = {0} }
+};
 /* USER CODE END 0 */
 
 FDCAN_HandleTypeDef hfdcan1;
@@ -152,5 +156,62 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void InitCANFrames() {
+    for (int i = 0; i < FRAME_COUNT; i++) {
+        frames[i].header.IdType = FDCAN_STANDARD_ID;
+        frames[i].header.TxFrameType = FDCAN_DATA_FRAME;
+        frames[i].header.DataLength = FDCAN_DLC_BYTES_8;
+        frames[i].header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+        frames[i].header.BitRateSwitch = FDCAN_BRS_OFF;
+        frames[i].header.FDFormat = FDCAN_CLASSIC_CAN;
+        frames[i].header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    }
+}
+
+void SendCANFrame(CAN_FrameIndex frameIndex) {
+    if (frameIndex >= FRAME_COUNT) {
+    	printf("Over can frames index");
+        return; // todo add error
+
+    }
+    HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &frames[frameIndex].header, frames[frameIndex].data);
+}
+
+void modify_can_frame_byte(uint8_t frameIndex,uint8_t byte_num, uint8_t value)
+{
+	//todo add wrong index error
+   if (frameIndex >= FRAME_COUNT) {
+		printf("Over can frames index");
+		return; // todo add error
+   }
+
+   if (byte_num > 8) {
+	   printf("Wrong byte index");
+       return;
+   }
+	frames[frameIndex].data[byte_num] = value;
+}
+
+void modify_can_frame_bit(uint8_t frameIndex, uint8_t byte_num, uint8_t bit_num, bool state)
+{
+	   if (frameIndex >= FRAME_COUNT) {
+			printf("Over can frames index");
+			return; // todo add error
+	   }
+	   if (byte_num > 8) {
+		   printf("Wrong byte index");
+	       return;
+	   }
+	   if (bit_num > 8) {
+		   printf("Wrong bit index");
+		   return;
+	   }
+
+	   if(state)
+		   frames[frameIndex].data[byte_num] |= (1 << bit_num);  // bit set by OR
+		else
+		   frames[frameIndex].data[byte_num] &= ~(1 << bit_num); // bit unset BY AND
+}
+
 
 /* USER CODE END 1 */

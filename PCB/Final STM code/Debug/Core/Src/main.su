@@ -1,8 +1,9 @@
-../Core/Src/main.c:100:6:ESP32_SendCommand	16	static
-../Core/Src/main.c:106:6:parse_frame	32	static
-../Core/Src/main.c:174:6:process_frame	8	static
-../Core/Src/main.c:180:6:Set_PWM_Frequency	32	static
-../Core/Src/main.c:208:5:main	56	static
-../Core/Src/main.c:299:6:SystemClock_Config	120	static
-../Core/Src/main.c:352:6:HAL_UART_RxCpltCallback	16	static
-../Core/Src/main.c:393:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:102:6:ESP32_SendCommand	16	static
+../Core/Src/main.c:108:6:parse_frame	32	static
+../Core/Src/main.c:188:6:process_frame	8	static
+../Core/Src/main.c:194:6:Set_PWM_Frequency	32	static
+../Core/Src/main.c:222:5:main	8	static
+../Core/Src/main.c:290:6:SystemClock_Config	120	static
+../Core/Src/main.c:343:6:HAL_UART_RxCpltCallback	16	static
+../Core/Src/main.c:378:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/main.c:394:6:Error_Handler	4	static,ignoring_inline_asm

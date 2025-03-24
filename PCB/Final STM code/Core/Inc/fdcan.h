@@ -29,18 +29,36 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;
 
 /* USER CODE BEGIN Private defines */
+typedef enum {
+    FRAME_316 = 0,
+    FRAME_329,
+    FRAME_545,
+    FRAME_COUNT  // automatic frame count
+} CAN_FrameIndex;
+
+typedef struct {
+    FDCAN_TxHeaderTypeDef header;
+    uint8_t data[8];
+} CAN_Frame;
+
+
 
 /* USER CODE END Private defines */
 
 void MX_FDCAN1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void InitCANFrames();
+void SendCANFrame(CAN_FrameIndex);
+void modify_can_frame_byte(uint8_t, uint8_t, uint8_t);
+void modify_can_frame_bit(uint8_t, uint8_t, uint8_t, bool);
+
 
 /* USER CODE END Prototypes */
 
