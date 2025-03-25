@@ -503,12 +503,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	 }
 	 if (htim == &htim3)
 	 {
-	 if(isFullBeam){
-				Send_KBUS_frame(LM,Broadcast, 0x5B,  0x07, 0x83, 0x0a, 0x3f);
-			}
-			else{
-				Send_KBUS_frame(LM,Broadcast, 0x5B,  0x00, 0x83, 0x0a, 0x3f);
-			}
+		bool anyConditionMet = false;
+		uint8_t command = 0x00;  // Domyślnie brak sygnału
+		if (isFullBeam) {
+			command = BEAM_LOW | PARKING | BEAM_HIGH;
+			anyConditionMet = true;
+		}
+		if (isLeftSignal) {
+			command = command | TURN_LEFT;
+			anyConditionMet = true;
+		}
+		if (isRightSignal) {
+			command = command | TURN_RIGHT;
+			anyConditionMet = true;
+		}
+		if (!anyConditionMet) {
+			Send_KBUS_frame(LM, Broadcast, 0x5B, 0x00, 0x83, 0x0a, 0x3f);
+		}
+		Send_KBUS_frame(LM, Broadcast, 0x5B, command, 0x83, 0x0a, 0x3f);
 	 }
 }
 
