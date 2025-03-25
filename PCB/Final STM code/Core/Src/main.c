@@ -62,6 +62,61 @@ typedef struct {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+// K BUS
+#define LM      						0xd0
+#define Broadcast        			    0xbf
+#define Cluster_Indicators_Request      0x5a
+#define Door_Lid_Status        			0x7a
+
+// Byte 1 (MSB)
+#define TURN_RAPID        0x80
+#define TURN_RIGHT        0x40
+#define TURN_LEFT         0x20
+#define FOG_REAR          0x10
+#define FOG_FRONT         0x08
+#define BEAM_HIGH         0x04
+#define BEAM_LOW          0x02
+#define PARKING           0x01
+// Byte 2
+#define CCM_LIC_PLATE     0x80
+#define CCM_TURN_RIGHT    0x40
+#define CCM_TURN_LEFT     0x20
+#define CCM_FOG_REAR      0x10
+#define CCM_FOG_FRONT     0x08
+#define CCM_HIGH_BEAM     0x04
+#define CCM_LOW_BEAM      0x02
+#define CCM_PARKING       0x01
+// Byte 3
+#define CCM_REVERSE       0x20
+#define INDICATORS        0x04
+#define CCM_BRAKE         0x02
+// Byte 4
+#define FOG_REAR_SWITCH   0x40
+
+// outgauge protocol
+// OG_x - Bity dla flags
+#define OG_SHIFT    (1 << 0)   // Klawisz SHIFT
+#define OG_CTRL     (1 << 1)   // Klawisz CTRL
+#define OG_TURBO    (1 << 13)  // Wskaźnik turbo
+#define OG_KM       (1 << 14)  // Jeśli nie ustawione - preferuje MILE
+#define OG_BAR      (1 << 15)  // Jeśli nie ustawione - preferuje PSI
+
+// DL_x - Bity dla dashLights i showLights
+#define DL_SHIFT        (1 << 0)  // Shift light
+#define DL_FULLBEAM     (1 << 1)  // Światła drogowe
+#define DL_HANDBRAKE    (1 << 2)  // Hamulec ręczny
+#define DL_PITSPEED     (1 << 3)  // Ogranicznik prędkości pit (N/A)
+#define DL_TC           (1 << 4)  // Kontrola trakcji
+#define DL_SIGNAL_L     (1 << 5)  // Kierunkowskaz lewy
+#define DL_SIGNAL_R     (1 << 6)  // Kierunkowskaz prawy
+#define DL_SIGNAL_ANY   (1 << 7)  // Kierunkowskaz ogólny (N/A)
+#define DL_OILWARN      (1 << 8)  // Ostrzeżenie o niskim ciśnieniu oleju
+#define DL_BATTERY      (1 << 9)  // Ostrzeżenie o akumulatorze
+#define DL_ABS          (1 << 10) // ABS aktywny lub wyłączony
+#define DL_SPARE        (1 << 11) // N/A
+//
+
 #define RX_BUFFER_SIZE 128
 #define FRAME_SIZE 96
 #define HEADER "+IPD"
@@ -88,7 +143,19 @@ FrameData frame;
 
 float speed = 0;
 
+bool isTurboActive;
+bool isMetric;
+bool prefersBar;
 
+bool isShiftLightOn;
+bool isFullBeam;
+bool isHandbrakeOn;
+bool isTractionCtrl;
+bool isABSActive;
+bool isOilWarning;
+bool isBatteryWarning;
+bool isLeftSignal;
+bool isRightSignal;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -178,19 +245,66 @@ void parse_frame(uint8_t *buffer) {
 
     uint8_t hexValue_temperature = ((frame.engTemp + 48.0) / 0.75) ;
 
+    isTurboActive = frame.flags & OG_TURBO;
+    isMetric = frame.flags & OG_KM;
+    prefersBar = frame.flags & OG_BAR;
+
+    isShiftLightOn = frame.showLights & DL_SHIFT;
+    isFullBeam = frame.showLights & DL_FULLBEAM;
+    isHandbrakeOn = frame.showLights & DL_HANDBRAKE;
+    isTractionCtrl = frame.showLights & DL_TC;
+    isABSActive = frame.showLights & DL_ABS;
+    isOilWarning = frame.showLights & DL_OILWARN;
+    isBatteryWarning = frame.showLights & DL_BATTERY;
+    isLeftSignal = frame.showLights & DL_SIGNAL_L;
+    isRightSignal = frame.showLights & DL_SIGNAL_R;
+
+
     modify_can_frame_byte(FRAME_316, 2, lsb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
 
-
-    // W tym miejscu masz już poprawnie wypełnioną strukturę `frame`
 }
+
+uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
+    uint8_t checksum = 0;
+    for (uint8_t i = 0; i < length; i++) {
+        checksum ^= data[i];
+    }
+    return checksum;
+}
+
+void Send_KBUS_frame(uint8_t Source_ID, uint8_t Dest_ID, uint8_t command, uint8_t Byte1, uint8_t Byte2, uint8_t Byte3, uint8_t Byte4 )
+{
+	uint8_t frame[10];
+	uint8_t lenght;
+
+	frame[0] = Source_ID; //LM 0xd0 → Broadcast 0xbf
+	//frame[1] = lenght;
+	frame[2] = Dest_ID;
+	frame[3] = command;
+	frame[4] = Byte1;
+	frame[5] = Byte2;
+	frame[6] = Byte3;
+	frame[7] = Byte4;
+	frame[8] = 0;
+
+	//lenght = sizeof(frame) - 2;
+	frame[1] = 0x7; //lenght
+	frame[8] = calculate_checksum(frame, 8);
+	frame[9] = '\n';
+
+	HAL_UART_Transmit(&huart2, frame, sizeof(frame), 100);
+}
+
+
 void process_frame(void) {
     if (frameReady) {
         parse_frame(FrameBuffer);
         frameReady = false;
     }
 }
+
 void Set_PWM_Frequency(uint16_t speed_kmh) {
     uint32_t freq = MIN_FREQ + ((MAX_FREQ - MIN_FREQ) * speed_kmh) / MAX_SPEED;
 
@@ -250,6 +364,8 @@ int main(void)
   MX_ICACHE_Init();
   MX_FDCAN1_Init();
   MX_TIM2_Init();
+  MX_USART2_UART_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   ESP32_SendCommand("AT+RST");  // Resetuj ESP32
@@ -262,8 +378,9 @@ int main(void)
   HAL_Delay(1000);
   HAL_UART_Receive_DMA(&huart1, UartBuffer, 1);
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim3);
   InitCANFrames();
-
+  HAL_GPIO_WritePin(K_BUS_SLP_GPIO_Port, K_BUS_SLP_Pin, SET); //turn off k-bus tranciver sleep mode
 
 
   /* USER CODE END 2 */
@@ -275,6 +392,7 @@ int main(void)
 	 // process_frame();
 	 speed = frame.speed * 3.6;
      Set_PWM_Frequency(speed);
+     // Send_KBUS_frame(LM,Broadcast, 0x5B,  0x07, 0x83, 0x0a, 0x3f);
 
     /* USER CODE END WHILE */
 
@@ -381,6 +499,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	     SendCANFrame(FRAME_316);  // Wysyła ramkę o ID 0x316
 	     SendCANFrame(FRAME_329);  // Wysyła ramkę o ID 0x329
 	     SendCANFrame(FRAME_545);  // Wysyła ramkę o ID 0x545
+
+	 }
+	 if (htim == &htim3)
+	 {
+	 if(isFullBeam){
+				Send_KBUS_frame(LM,Broadcast, 0x5B,  0x07, 0x83, 0x0a, 0x3f);
+			}
+			else{
+				Send_KBUS_frame(LM,Broadcast, 0x5B,  0x00, 0x83, 0x0a, 0x3f);
+			}
 	 }
 }
 

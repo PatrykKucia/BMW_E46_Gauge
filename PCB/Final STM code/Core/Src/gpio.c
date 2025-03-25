@@ -44,25 +44,48 @@ void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(D3_GPIO_Port, D3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(K_BUS_SLP_GPIO_Port, K_BUS_SLP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, D2_Pin|D1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, BACKLIGHT_Pin|BATT_CHARGE_LIGHT_Pin|OIL_LIGHT_Pin|BRAKE_FLU_LIGHT_Pin
+                          |TRCVR_MODE_Pin|D3_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : D3_Pin */
-  GPIO_InitStruct.Pin = D3_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, ABS_Pin|PARKING_BRAKE_Pin|BRAKE_WEAR_SENS_Pin|COOLANT_LVL_SENS_Pin
+                          |WASHER_FLU_LVL_Pin|D2_Pin|D1_Pin|Fuel_HVC_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : STM_ESP_Pin */
+  GPIO_InitStruct.Pin = STM_ESP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(STM_ESP_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : K_BUS_SLP_Pin */
+  GPIO_InitStruct.Pin = K_BUS_SLP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(D3_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(K_BUS_SLP_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : D2_Pin D1_Pin */
-  GPIO_InitStruct.Pin = D2_Pin|D1_Pin;
+  /*Configure GPIO pins : BACKLIGHT_Pin BATT_CHARGE_LIGHT_Pin OIL_LIGHT_Pin BRAKE_FLU_LIGHT_Pin
+                           TRCVR_MODE_Pin D3_Pin */
+  GPIO_InitStruct.Pin = BACKLIGHT_Pin|BATT_CHARGE_LIGHT_Pin|OIL_LIGHT_Pin|BRAKE_FLU_LIGHT_Pin
+                          |TRCVR_MODE_Pin|D3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : ABS_Pin PARKING_BRAKE_Pin BRAKE_WEAR_SENS_Pin COOLANT_LVL_SENS_Pin
+                           WASHER_FLU_LVL_Pin D2_Pin D1_Pin Fuel_HVC_Pin */
+  GPIO_InitStruct.Pin = ABS_Pin|PARKING_BRAKE_Pin|BRAKE_WEAR_SENS_Pin|COOLANT_LVL_SENS_Pin
+                          |WASHER_FLU_LVL_Pin|D2_Pin|D1_Pin|Fuel_HVC_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
