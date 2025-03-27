@@ -14,6 +14,7 @@ Connecting e46 320D gauge to beamng drive
 9. [Qt App](#Qt_App)
 10. [ESP CODE](#ESP_CODE)
 11. [AT Comands](#AT_Comands)
+12. [K bus](#K_bus)
 ---
 
 ## Schematic
@@ -484,3 +485,95 @@ h2B h49 h50 h44 h2C h39 h36 h3A h00 h00 h00 h00 h62 h65 h61 h6D h00 hC0 h02 h00 
 
 
 h2B h49 h50 h44 h2C h39 h36 h3A h00 h00 h00 h00 h62 h65 h61 h6D h00 hC0 h02 h00 h55 h18 h25 h39 h80 h6C h1C h44 h00 h00 h00 h00 h6F h62 hD1 h41 h79 hA0 h7E h3F h00 h00 h00 h00 h6D h90 hE2 h41 h66 h07 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h9A h99 h99 h3E h00 h00 h80 h3F h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00 h00     
+
+## K Bus
+
+
+# `0x5b` Cluster Indicators
+
+LM `0xd0` → Broadcast `0xbf`
+
+Activation of lighting related indicator lamps in the instrument cluster.
+
+Additionally, activation of check control indicators lamps on low cluster (KOMBI), and check control messages (via discrete Check Control Module) on early E38s with high clusters (IKE).
+
+### Related
+
+- `0x5a` [Cluster Indicators Request](5a.md)
+- `0x7a` [Door/Lid Status](../gm/7a.md)
+
+### Examples
+    
+    # LCM_III
+    D0 07 BF 5B 00 89 00 00 BA
+    D0 07 BF 5B 01 C9 02 02 FB
+    D0 07 BF 5B 80 20 00 00 93
+    D0 07 BF 5B 00 8D 00 00 BE
+    D0 07 BF 5B 00 00 00 00 33
+
+    # LCM_IV
+    D0 08 BF 5B 1B 00 00 40 00 67
+    D0 08 BF 5B 00 00 00 00 00 3C
+    D0 08 BF 5B 40 00 04 00 00 78
+    D0 08 BF 5B 01 00 00 00 01 3C
+    D0 08 BF 5B 03 00 00 00 01 3E
+
+## Parameters
+
+Fixed length, 4-byte bitfield for `LCM_III` (and I'd guess earlier variants).
+
+    # Byte 1 (MSB)
+    
+    TURN_RAPID        = 0b1000_0000
+    TURN_RIGHT        = 0b0100_0000
+    TURN_LEFT         = 0b0010_0000
+    FOG_REAR          = 0b0001_0000
+    
+    FOG_FRONT         = 0b0000_1000
+    BEAM_HIGH         = 0b0000_0100
+    BEAM_LOW          = 0b0000_0010
+    PARKING           = 0b0000_0001
+    
+    # Byte 2
+    
+    CCM_LIC_PLATE     = 0b1000_0000
+    CCM_TURN_RIGHT    = 0b0100_0000
+    CCM_TURN_LEFT     = 0b0010_0000
+    CCM_FOG_REAR      = 0b0001_0000
+    
+    CCM_FOG_FRONT     = 0b0000_1000
+    CCM_HIGH_BEAM     = 0b0000_0100
+    CCM_LOW_BEAM      = 0b0000_0010
+    CCM_PARKING       = 0b0000_0001
+    
+    # Byte 3
+        
+    CCM_REVERSE       = 0b0010_0000
+    
+    INDICATORS        = 0b0000_0100
+    CCM_BRAKE         = 0b0000_0010
+    
+    # Byte 4 (LSB)
+    
+    FOG_REAR_SWITCH   = 0b0100_0000
+    KOMBI_LOW_LEFT    = 0b0010_0000
+    KOMBI_LOW_RIGHT   = 0b0001_0000
+
+    KOMBI_BRAKE_LEFT  = 0b0000_0010
+    KOMBI_BRAKE_RIGHT = 0b0000_0001
+    
+    # Pending...
+    # CCM_TAIL
+    # CCM_TRAILER
+    # KOMBI_BRAKE_CENTRE
+
+`LCM_IV` and `LSZ_2` added a fifth byte.
+
+    # Byte 5
+    
+    UNKNOWN           = 0b0000_0001
+
+
+
+Send_KBUS_frame(LM, Broadcast, 0x5B, command, 0x00, 0x00, 0x04, 0x07); -> right rear light bulb warning
+---

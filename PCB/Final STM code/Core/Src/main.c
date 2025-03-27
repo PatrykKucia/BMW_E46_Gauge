@@ -36,26 +36,26 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef struct {
-    uint32_t time;
-    char car[4];
+    uint32_t time;// time in milliseconds (to check order) // N/A,
+    char car[4];// Car name // N/A, fixed value of "beam"
     uint16_t flags;
-    char gear;
-    char plid;
-    float speed;
-    float rpm;
-    float turbo;
-    float engTemp;
-    float fuel;
-    float oilPressure;
-    float oilTemp;
-    uint32_t dashLights;
-    uint32_t showLights;
-    float throttle;
-    float brake;
-    float clutch;
-    char display1[16];
-    char display2[16];
-    int id;
+    char gear;// Reverse:0, Neutral:1, First:2...
+    char plid;// Unique ID of viewed player (0 = none) // N/A,
+    float speed; // M/S
+    float rpm;// RPM
+    float turbo; // BAR
+    float engTemp;// C
+    float fuel;// 0 to 1
+    float oilPressure;// BAR // N/A, hardcoded to 0
+    float oilTemp;// C
+    uint32_t dashLights;// Dash lights available (see DL_x below)
+    uint32_t showLights;// Dash lights currently switched on
+    float throttle;// 0 to 1
+    float brake; // 0 to 1
+    float clutch;// 0 to 1
+    char display1[16];// Usually Fuel // N/A, hardcoded to ""
+    char display2[16];// Usually Settings // N/A, hardcoded to ""
+    int id; // optional - only if OutGauge ID is specified
 } FrameData;
 
 /* USER CODE END PTD */
@@ -96,24 +96,24 @@ typedef struct {
 
 // outgauge protocol
 // OG_x - Bity dla flags
-#define OG_SHIFT    (1 << 0)   // Klawisz SHIFT
-#define OG_CTRL     (1 << 1)   // Klawisz CTRL
+#define OG_SHIFT    (1 << 0)   // key N/A
+#define OG_CTRL     (1 << 1)   // key N/A
 #define OG_TURBO    (1 << 13)  // Wskaźnik turbo
-#define OG_KM       (1 << 14)  // Jeśli nie ustawione - preferuje MILE
-#define OG_BAR      (1 << 15)  // Jeśli nie ustawione - preferuje PSI
+#define OG_KM       (1 << 14)  // if not set - user prefers MILES
+#define OG_BAR      (1 << 15)  // if not set - user prefers PSI
 
 // DL_x - Bity dla dashLights i showLights
-#define DL_SHIFT        (1 << 0)  // Shift light
-#define DL_FULLBEAM     (1 << 1)  // Światła drogowe
-#define DL_HANDBRAKE    (1 << 2)  // Hamulec ręczny
-#define DL_PITSPEED     (1 << 3)  // Ogranicznik prędkości pit (N/A)
-#define DL_TC           (1 << 4)  // Kontrola trakcji
-#define DL_SIGNAL_L     (1 << 5)  // Kierunkowskaz lewy
-#define DL_SIGNAL_R     (1 << 6)  // Kierunkowskaz prawy
-#define DL_SIGNAL_ANY   (1 << 7)  // Kierunkowskaz ogólny (N/A)
-#define DL_OILWARN      (1 << 8)  // Ostrzeżenie o niskim ciśnieniu oleju
-#define DL_BATTERY      (1 << 9)  // Ostrzeżenie o akumulatorze
-#define DL_ABS          (1 << 10) // ABS aktywny lub wyłączony
+#define DL_SHIFT        (1 << 0)  // shift light
+#define DL_FULLBEAM     (1 << 1)  // full beam
+#define DL_HANDBRAKE    (1 << 2)  // handbrake
+#define DL_PITSPEED     (1 << 3)  // pit speed limiter // N/A
+#define DL_TC           (1 << 4)  // tc active or switched off
+#define DL_SIGNAL_L     (1 << 5)  // left turn signal
+#define DL_SIGNAL_R     (1 << 6)  // right turn signal
+#define DL_SIGNAL_ANY   (1 << 7)  // shared turn signal // N/A
+#define DL_OILWARN      (1 << 8)  // oil pressure warning
+#define DL_BATTERY      (1 << 9)  // battery warning
+#define DL_ABS          (1 << 10) // abs active or switched off
 #define DL_SPARE        (1 << 11) // N/A
 //
 
@@ -121,7 +121,7 @@ typedef struct {
 #define FRAME_SIZE 96
 #define HEADER "+IPD"
 #define MAX_SPEED 270      // 255 km/h
-#define MIN_FREQ 50       // 100 Hz
+#define MIN_FREQ 25      // 100 Hz
 #define MAX_FREQ 1770  // 1770 kHz
 /* USER CODE END PD */
 
@@ -156,6 +156,9 @@ bool isOilWarning;
 bool isBatteryWarning;
 bool isLeftSignal;
 bool isRightSignal;
+
+static float previous_fuel = 0;
+static uint32_t previous_time = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -170,6 +173,20 @@ void ESP32_SendCommand(const char* command) {
     HAL_UART_Transmit(&huart1, (uint8_t*)command, strlen(command), HAL_MAX_DELAY);
     HAL_UART_Transmit(&huart1, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);  // Końcówka komendy AT
     HAL_Delay(100);  // Czekaj na odpowiedź
+}
+
+void InitAnalogIndicators(){
+	 HAL_GPIO_WritePin(WASHER_FLU_LVL_GPIO_Port, WASHER_FLU_LVL_Pin, SET); // SET to off
+	 HAL_GPIO_WritePin(COOLANT_LVL_SENS_GPIO_Port, COOLANT_LVL_SENS_Pin, SET); //SET to off
+	 HAL_GPIO_WritePin(BRAKE_WEAR_SENS_GPIO_Port, BRAKE_WEAR_SENS_Pin, SET);//SET to off
+	 HAL_GPIO_WritePin(PARKING_BRAKE_GPIO_Port, PARKING_BRAKE_Pin, RESET);//SET to off temp
+	 HAL_GPIO_WritePin(ABS_GPIO_Port, ABS_Pin, SET);//SET to off temp
+	 HAL_GPIO_WritePin(BRAKE_FLU_LIGHT_GPIO_Port, BRAKE_FLU_LIGHT_Pin, SET);//SET to off
+	 HAL_GPIO_WritePin(OIL_LIGHT_GPIO_Port, OIL_LIGHT_Pin, RESET);//RESET to off temp
+	 HAL_GPIO_WritePin(BATT_CHARGE_LIGHT_GPIO_Port, BATT_CHARGE_LIGHT_Pin, RESET);//RESET to off temp
+
+	 //HAL_GPIO_WritePin(BACKLIGHT_GPIO_Port, BACKLIGHT_Pin, RESET);//RESET to off ------------NOT WORKING
+
 }
 
 void parse_frame(uint8_t *buffer) {
@@ -264,6 +281,25 @@ void parse_frame(uint8_t *buffer) {
     modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
 
+    uint32_t current_time = HAL_GetTick(); // Pobranie aktualnego czasu (w ms)
+    float fuel_consumption;
+    float fuel_consumed = previous_fuel - frame.fuel;  // Ile paliwa ubyło
+    float distance_travelled = frame.speed * ((current_time - previous_time) / 3600000.0f); // Przebyta droga (km)
+
+    if(frame.throttle>0){
+    fuel_consumption = (distance_travelled > 0) ? (fuel_consumed / distance_travelled) * 100.0f : 0;
+    }
+    else
+    	fuel_consumption = 0;
+
+    uint16_t fuel_scaled = (uint16_t)((fuel_consumption / 30.0f) * 0xFFFF);
+    previous_fuel = frame.fuel;
+    previous_time = current_time;
+    uint8_t fuel_lsb = fuel_scaled & 0xFF;       // Najmłodszy bajt
+    uint8_t fuel_msb = (fuel_scaled >> 8) & 0xFF; // Najstarszy bajt
+
+	 modify_can_frame_byte(FRAME_545, 1, fuel_lsb );
+	 modify_can_frame_byte(FRAME_545, 2, fuel_msb );
 }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
@@ -274,10 +310,10 @@ uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
     return checksum;
 }
 
-void Send_KBUS_frame(uint8_t Source_ID, uint8_t Dest_ID, uint8_t command, uint8_t Byte1, uint8_t Byte2, uint8_t Byte3, uint8_t Byte4 )
+void Send_KBUS_frame(uint8_t Source_ID, uint8_t Dest_ID, uint8_t command, uint8_t Byte1, uint8_t Byte2, uint8_t Byte3, uint8_t Byte4, uint8_t size )
 {
 	uint8_t frame[10];
-	uint8_t lenght;
+	//uint8_t lenght;
 
 	frame[0] = Source_ID; //LM 0xd0 → Broadcast 0xbf
 	//frame[1] = lenght;
@@ -290,8 +326,8 @@ void Send_KBUS_frame(uint8_t Source_ID, uint8_t Dest_ID, uint8_t command, uint8_
 	frame[8] = 0;
 
 	//lenght = sizeof(frame) - 2;
-	frame[1] = 0x7; //lenght
-	frame[8] = calculate_checksum(frame, 8);
+	frame[1] = size; //lenght
+	frame[8] = calculate_checksum(frame, size+1);
 	frame[9] = '\n';
 
 	HAL_UART_Transmit(&huart2, frame, sizeof(frame), 100);
@@ -381,6 +417,7 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim3);
   InitCANFrames();
   HAL_GPIO_WritePin(K_BUS_SLP_GPIO_Port, K_BUS_SLP_Pin, SET); //turn off k-bus tranciver sleep mode
+  InitAnalogIndicators();
 
 
   /* USER CODE END 2 */
@@ -518,9 +555,26 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			anyConditionMet = true;
 		}
 		if (!anyConditionMet) {
-			Send_KBUS_frame(LM, Broadcast, 0x5B, 0x00, 0x83, 0x0a, 0x3f);
+			Send_KBUS_frame(LM, Broadcast, 0x5B, 0x00, 0x00, 0x00, 0x00, 0x07);//, 0x83, 0x0a, 0x3f
 		}
-		Send_KBUS_frame(LM, Broadcast, 0x5B, command, 0x83, 0x0a, 0x3f);
+		Send_KBUS_frame(LM, Broadcast, 0x5B, command, 0x00, 0x00, 0x00, 0x07);
+
+		if (isHandbrakeOn) {
+			HAL_GPIO_WritePin(PARKING_BRAKE_GPIO_Port, PARKING_BRAKE_Pin, SET);//SET to off temp
+		}else
+			HAL_GPIO_WritePin(PARKING_BRAKE_GPIO_Port, PARKING_BRAKE_Pin, RESET);//SET to off temp
+		if (isOilWarning) {
+			HAL_GPIO_WritePin(OIL_LIGHT_GPIO_Port, OIL_LIGHT_Pin, SET); //SET on
+		}else
+			HAL_GPIO_WritePin(OIL_LIGHT_GPIO_Port, OIL_LIGHT_Pin, RESET); //SET to off temp
+		if (isBatteryWarning) {
+			HAL_GPIO_WritePin(BATT_CHARGE_LIGHT_GPIO_Port, BATT_CHARGE_LIGHT_Pin, SET);
+		}else
+			HAL_GPIO_WritePin(BATT_CHARGE_LIGHT_GPIO_Port, BATT_CHARGE_LIGHT_Pin, RESET);
+		if (isABSActive) {
+			HAL_GPIO_WritePin(ABS_GPIO_Port, ABS_Pin, RESET);
+		}else
+			HAL_GPIO_WritePin(ABS_GPIO_Port, ABS_Pin, SET);
 	 }
 }
 
