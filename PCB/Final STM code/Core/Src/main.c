@@ -20,6 +20,7 @@
 #include "main.h"
 #include "fdcan.h"
 #include "gpdma.h"
+#include "i2c.h"
 #include "icache.h"
 #include "memorymap.h"
 #include "tim.h"
@@ -123,6 +124,12 @@ typedef struct {
 #define MAX_SPEED 270      // 255 km/h
 #define MIN_FREQ 25      // 100 Hz
 #define MAX_FREQ 1770  // 1770 kHz
+
+#define MCP4662_ADDR  (0x2D << 1)  // Adres I2C
+#define R_TOTAL       5000
+#define R_MIN         75
+#define R_STEP        19.3
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -169,13 +176,71 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int __io_putchar(int ch) //function used to print() in usart
+{
+  if (ch == '\n') {
+    __io_putchar('\r');
+  }
+
+  HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+
+  return 1;
+}
+
+uint8_t CalculateWiperValue(uint16_t resistance)
+{
+    if (resistance < R_MIN) resistance = R_MIN;
+    if (resistance > (R_TOTAL - R_MIN)) resistance = R_TOTAL - R_MIN;
+
+    return (uint8_t)((resistance - R_MIN) / R_STEP);
+}
+
+void SetResistance(uint16_t resistance)
+{
+    uint8_t wiper_value = CalculateWiperValue(resistance);
+    uint8_t data[1] = {0x14}; // 0x00 - adres WIPER0
+    uint8_t data1[1] = {0x84}; // 0x00 - adres WIPER1
+
+    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, data, 1, 100) == HAL_OK)
+    {
+        printf("Ustawiono rezystancję na: %dΩ (wartość rejestru: %d)\r\n", resistance, wiper_value);
+    }
+    else
+    {
+        printf("Błąd ustawiania rezystancji\r\n");
+    }
+    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, data1, 1, 100) == HAL_OK)
+     {
+         printf("Ustawiono rezystancję na: %dΩ (wartość rejestru: %d)\r\n", resistance, wiper_value);
+     }
+     else
+     {
+         printf("Błąd ustawiania rezystancji\r\n");
+     }
+}
 void ESP32_SendCommand(const char* command) {
     HAL_UART_Transmit(&huart1, (uint8_t*)command, strlen(command), HAL_MAX_DELAY);
     HAL_UART_Transmit(&huart1, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);  // Końcówka komendy AT
     HAL_Delay(100);  // Czekaj na odpowiedź
 }
 
+
+void I2C_Scan()
+{
+    printf("Skanowanie I2C...\r\n");
+    for (uint8_t addr = 1; addr < 127; addr++)
+    {
+        if (HAL_I2C_IsDeviceReady(&hi2c1, (addr << 1), 1, 100) == HAL_OK)
+        {
+            printf("Znaleziono urządzenie na adresie: 0x%X\r\n", addr);
+        }
+    }
+}
+
 void InitAnalogIndicators(){
+
+	 HAL_GPIO_WritePin(K_BUS_SLP_GPIO_Port, K_BUS_SLP_Pin, SET); //turn off k-bus tranciver sleep mode
+
 	 HAL_GPIO_WritePin(WASHER_FLU_LVL_GPIO_Port, WASHER_FLU_LVL_Pin, SET); // SET to off
 	 HAL_GPIO_WritePin(COOLANT_LVL_SENS_GPIO_Port, COOLANT_LVL_SENS_Pin, SET); //SET to off
 	 HAL_GPIO_WritePin(BRAKE_WEAR_SENS_GPIO_Port, BRAKE_WEAR_SENS_Pin, SET);//SET to off
@@ -186,12 +251,32 @@ void InitAnalogIndicators(){
 	 HAL_GPIO_WritePin(BATT_CHARGE_LIGHT_GPIO_Port, BATT_CHARGE_LIGHT_Pin, RESET);//RESET to off temp
 
 	 //HAL_GPIO_WritePin(BACKLIGHT_GPIO_Port, BACKLIGHT_Pin, RESET);//RESET to off ------------NOT WORKING
+	 modify_can_frame_byte(FRAME_316, 0, 0x0D);
+	 modify_can_frame_byte(FRAME_316, 1, 0xff);
+
 
 }
+uint16_t calculate_fuel_consumption(float throttle, uint8_t gear) {
+    if (throttle <= 0.0f) return 0x0000; // Brak spalania, jeśli pedał gazu nie jest wciśnięty
+    if (gear == 0) return 0xFFFF; // Maksymalne spalanie na biegu jałowym
+
+    float max_consumption = 20.0f; // Maksymalne spalanie w l/100 km
+    float gear_factor = 1.0f + (gear - 1) * 0.5f; // Im wyższy bieg, tym niższe spalanie
+    float fuel_consumption = (throttle * max_consumption);// / gear_factor;
+
+    // Ograniczenie spalania do maksimum
+    if (fuel_consumption > max_consumption) {
+        fuel_consumption = max_consumption;
+    }
+
+    // Skalowanie do 0xFFFF
+    uint16_t fuel_scaled = (uint16_t)((fuel_consumption / max_consumption) * 0xFFFF);
+    return fuel_scaled;
+}
+
 
 void parse_frame(uint8_t *buffer) {
 
-    HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);  // Diagnostyka
 
     // Parsowanie danych z FrameBuffer do struktury FrameData
     uint8_t offset = 0;
@@ -259,7 +344,6 @@ void parse_frame(uint8_t *buffer) {
     uint8_t lsb = hexValue_RPM & 0xFF;  // Pobranie 8 najmłodszych bitów
     uint8_t msb = (hexValue_RPM >> 8) & 0xFF;  // Pobranie 8 najbardziej znaczących bitów
 
-
     uint8_t hexValue_temperature = ((frame.engTemp + 48.0) / 0.75) ;
 
     isTurboActive = frame.flags & OG_TURBO;
@@ -281,26 +365,19 @@ void parse_frame(uint8_t *buffer) {
     modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
 
-    uint32_t current_time = HAL_GetTick(); // Pobranie aktualnego czasu (w ms)
-    float fuel_consumption;
-    float fuel_consumed = previous_fuel - frame.fuel;  // Ile paliwa ubyło
-    float distance_travelled = frame.speed * ((current_time - previous_time) / 3600000.0f); // Przebyta droga (km)
+    HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);  // Diagnostyka
 
-    if(frame.throttle>0){
-    fuel_consumption = (distance_travelled > 0) ? (fuel_consumed / distance_travelled) * 100.0f : 0;
-    }
-    else
-    	fuel_consumption = 0;
-
-    uint16_t fuel_scaled = (uint16_t)((fuel_consumption / 30.0f) * 0xFFFF);
-    previous_fuel = frame.fuel;
-    previous_time = current_time;
-    uint8_t fuel_lsb = fuel_scaled & 0xFF;       // Najmłodszy bajt
-    uint8_t fuel_msb = (fuel_scaled >> 8) & 0xFF; // Najstarszy bajt
-
-	 modify_can_frame_byte(FRAME_545, 1, fuel_lsb );
-	 modify_can_frame_byte(FRAME_545, 2, fuel_msb );
+//	if (frame.throttle == 0x00) frame.throttle = 0x01; // Minimalna wartość to 0x01
+//	 	 modify_can_frame_byte(FRAME_329, 5, frame.throttle * 256.0f);
+//
+//    uint16_t fuel_value = calculate_fuel_consumption(frame.throttle, frame.gear);
+//    uint8_t fuel_lsb = fuel_value & 0xFF;
+//    uint8_t fuel_msb = (fuel_value >> 8) & 0xFF;
+//
+//    modify_can_frame_byte(FRAME_545, 1, fuel_lsb);
+//    modify_can_frame_byte(FRAME_545, 2, fuel_msb);
 }
+
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
     uint8_t checksum = 0;
@@ -402,6 +479,7 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   ESP32_SendCommand("AT+RST");  // Resetuj ESP32
@@ -416,7 +494,6 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_Base_Start_IT(&htim3);
   InitCANFrames();
-  HAL_GPIO_WritePin(K_BUS_SLP_GPIO_Port, K_BUS_SLP_Pin, SET); //turn off k-bus tranciver sleep mode
   InitAnalogIndicators();
 
 
@@ -431,6 +508,8 @@ int main(void)
      Set_PWM_Frequency(speed);
      // Send_KBUS_frame(LM,Broadcast, 0x5B,  0x07, 0x83, 0x0a, 0x3f);
 
+     //I2C_Scan();
+     SetResistance(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -592,6 +671,8 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
+	  HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);  // Diagnostyka
+
   }
   /* USER CODE END Error_Handler_Debug */
 }

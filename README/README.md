@@ -15,6 +15,7 @@ Connecting e46 320D gauge to beamng drive
 10. [ESP CODE](#ESP_CODE)
 11. [AT Comands](#AT_Comands)
 12. [K bus](#K_bus)
+13. [I2C](#I2C)
 ---
 
 ## Schematic
@@ -577,3 +578,25 @@ Fixed length, 4-byte bitfield for `LCM_III` (and I'd guess earlier variants).
 
 Send_KBUS_frame(LM, Broadcast, 0x5B, command, 0x00, 0x00, 0x04, 0x07); -> right rear light bulb warning
 ---
+
+## I2C
+
+default I2C addres on start: Znaleziono urządzenie na adresie: 0x2D / 00101101
+
+I2C scan function
+
+``` 
+void I2C_Scan()
+{
+    printf("Skanowanie I2C...\r\n");
+    for (uint8_t addr = 1; addr < 127; addr++)
+    {
+        if (HAL_I2C_IsDeviceReady(&hi2c1, (addr << 1), 1, 100) == HAL_OK)
+        {
+            printf("Znaleziono urządzenie na adresie: 0x%X\r\n", addr);
+        }
+    }
+}
+
+```
+--- 
