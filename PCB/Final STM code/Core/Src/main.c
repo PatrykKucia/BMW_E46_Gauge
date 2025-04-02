@@ -126,9 +126,15 @@ typedef struct {
 #define MAX_FREQ 1770  // 1770 kHz
 
 #define MCP4662_ADDR  (0x2D << 1)  // Adres I2C
+#define MCP4662_ADDR_WRITE  (0x2D << 1)  // Adres I²C + bit zapisu (0)
+#define MCP4662_ADDR_READ   (0x2D << 1 | 1)  // Adres I²C + bit odczytu (1)
+#define TCON_REGISTER       0x04
 #define R_TOTAL       5000
 #define R_MIN         75
 #define R_STEP        19.3
+
+#define VOLATILE_WIPER_0  0x00
+#define VOLATILE_WIPER_1  0x01
 
 /* USER CODE END PD */
 
@@ -166,6 +172,8 @@ bool isRightSignal;
 
 static float previous_fuel = 0;
 static uint32_t previous_time = 0;
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -176,6 +184,30 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint16_t MCP4662_ReadTCON(I2C_HandleTypeDef *hi2c) {
+    uint8_t reg_addr = TCON_REGISTER;
+    uint8_t data[2] = {0};
+    uint16_t tcon_value = 0;
+
+    // Wysłanie adresu rejestru TCON
+    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, &reg_addr, 1, HAL_MAX_DELAY);
+
+    // Odczyt 2 bajtów (16 bitów)
+    HAL_I2C_Master_Receive(hi2c, MCP4662_ADDR_READ, data, 2, HAL_MAX_DELAY);
+
+    // Połączenie danych (GCEN jest w pierwszym bajcie, pozostałe w drugim)
+    tcon_value = (data[0] << 8) | data[1];  // 16-bitowa wartość
+
+    return tcon_value;
+}
+void MCP4662_WriteTCON(I2C_HandleTypeDef *hi2c, uint16_t tcon_value) {
+    uint8_t data[3];
+    data[0] = TCON_REGISTER;  // Adres rejestru
+    data[1] = (tcon_value >> 8) & 0xFF;  // GCEN (bit 8) & ////////////0x01
+    data[2] = tcon_value & 0xFF;         // Pozostałe 8 bitów
+
+    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, data, 3, HAL_MAX_DELAY);
+}
 int __io_putchar(int ch) //function used to print() in usart
 {
   if (ch == '\n') {
@@ -185,6 +217,27 @@ int __io_putchar(int ch) //function used to print() in usart
   HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
 
   return 1;
+}
+uint16_t ReadWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg) {
+    uint8_t data[2] = {0};
+    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR, &wiper_reg, 1, HAL_MAX_DELAY);
+    HAL_I2C_Master_Receive(hi2c, MCP4662_ADDR, data, 2, HAL_MAX_DELAY);
+
+    uint16_t wiper_value = ((data[0] << 8) | data[1]) & 0x03FF; // 10-bitowy wynik
+    return wiper_value;
+}
+void wiper_command(I2C_HandleTypeDef *hi2c, uint8_t wiper, uint8_t command) {
+    uint8_t cmd;
+
+    if (wiper == 0) {
+        cmd = command;  // Dla Wiper 0 (komendy 0x04 lub 0x08)
+    } else if (wiper == 1) {
+        cmd = command | 0x10; // Dodajemy bit 4, aby przełączyć na Wiper 1
+    } else {
+        return; // Nieprawidłowy wybór wipera
+    }
+
+    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR, &cmd, 1, HAL_MAX_DELAY);
 }
 
 uint8_t CalculateWiperValue(uint16_t resistance)
@@ -360,7 +413,6 @@ void parse_frame(uint8_t *buffer) {
     isLeftSignal = frame.showLights & DL_SIGNAL_L;
     isRightSignal = frame.showLights & DL_SIGNAL_R;
 
-
     modify_can_frame_byte(FRAME_316, 2, lsb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
@@ -497,19 +549,101 @@ int main(void)
   InitAnalogIndicators();
 
 
+  uint8_t increasing0 = 1, increasing1 = 1; // Flagi dla obu wiperów
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 // process_frame();
+	 process_frame();
 	 speed = frame.speed * 3.6;
      Set_PWM_Frequency(speed);
-     // Send_KBUS_frame(LM,Broadcast, 0x5B,  0x07, 0x83, 0x0a, 0x3f);
+////////////////////////
+//     uint16_t wiper0 = ReadWiper(&hi2c1, VOLATILE_WIPER_0);
+//     uint16_t wiper1 = ReadWiper(&hi2c1, VOLATILE_WIPER_1);
+//     printf("Wiper 0 value: %d\n", wiper0);
+//     printf("Wiper 1 value: %d\n", wiper1);
+//     uint8_t set_wiper[2] = {0x00, 0x80}; // Środkowa wartość (128)
+//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, set_wiper, 2, HAL_MAX_DELAY);
+//
+//     uint16_t tcon = MCP4662_ReadTCON(&hi2c1);
+//     // Interpretacja bitów:
+//         uint8_t GCEN = (tcon >> 8) & 0x01;  // Bit 8 (GCEN)
+//         uint8_t R1HW = (tcon >> 7) & 0x01;  // Bit 7
+//         uint8_t R1A  = (tcon >> 6) & 0x01;  // Bit 6
+//         uint8_t R1W  = (tcon >> 5) & 0x01;  // Bit 5
+//         uint8_t R1B  = (tcon >> 4) & 0x01;  // Bit 4
+//         uint8_t R0HW = (tcon >> 3) & 0x01;  // Bit 3
+//         uint8_t R0A  = (tcon >> 2) & 0x01;  // Bit 2
+//         uint8_t R0W  = (tcon >> 1) & 0x01;  // Bit 1
+//         uint8_t R0B  = (tcon >> 0) & 0x01;  // Bit 0
+//
+//         printf("TCON: 0x%04X\n", tcon);
+//         printf("GCEN: %d\n", GCEN);
+//         printf("R1HW: %d, R1A: %d, R1W: %d, R1B: %d\n", R1HW, R1A, R1W, R1B);
+//         printf("R0HW: %d, R0A: %d, R0W: %d, R0B: %d\n", R0HW, R0A, R0W, R0B);
+//
+//         // Przykład: Włączenie GCEN i ustawienie R1A=1, R0W=1
+//         uint16_t all_ones_tcon = 0x01FF;
+//         uint16_t new_tcon_value = 0x0181;
+//         MCP4662_WriteTCON(&hi2c1, new_tcon_value);
+//////////////////////////////
 
-     //I2C_Scan();
-     SetResistance(500);
+//
+////     uint8_t enable_tcon[2] = {0x04, 0b00001100}; // Włącz wszystkie połączenia
+////     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, enable_tcon, 2, HAL_MAX_DELAY);
+//
+//     uint8_t enable_tcon[2] = {0x04, 0x1FF};  // Wszystkie połączenia aktywne
+//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, enable_tcon, 2, HAL_MAX_DELAY);
+//
+//
+//     uint8_t read_tcon[1] = {0x04};
+//     uint8_t tcon_value[2] = {0};
+//
+//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, read_tcon, 1, HAL_MAX_DELAY);
+//     HAL_I2C_Master_Receive(&hi2c1, MCP4662_ADDR, tcon_value, 2, HAL_MAX_DELAY);
+//
+//     uint16_t tcon = (tcon_value[0] << 8 | tcon_value[1]) & 0x1FF;
+//     printf("TCON value: 0x%03X\n", tcon);
+
+//     uint8_t save_to_eeprom[2] = {0x20, 0x80}; // Zapisz do EEPROM
+//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, save_to_eeprom, 2, HAL_MAX_DELAY);
+
+////////////////////////////////
+//      {
+//         // *** WIPER 0 ***
+//         if (increasing0) {
+//             wiper_command(&hi2c1, 0, 0x04); // Inkrementacja Wiper 0
+//             wiper0++;
+//             if (wiper0 >= 256) increasing0 = 0;
+//         } else {
+//             wiper_command(&hi2c1, 0, 0x08); // Dekrementacja Wiper 0
+//             wiper0--;
+//             if (wiper0 == 0) increasing0 = 1;
+//         }
+//
+//         // *** WIPER 1 ***
+//         if (increasing1) {
+//             wiper_command(&hi2c1, 1, 0x04); // Inkrementacja Wiper 1
+//             wiper1++;
+//             if (wiper1 >= 256) increasing1 = 0;
+//         } else {
+//             wiper_command(&hi2c1, 1, 0x08); // Dekrementacja Wiper 1
+//             wiper1--;
+//             if (wiper1 == 0) increasing1 = 1;
+//
+//         }
+//
+//
+//         //HAL_Delay(50); // Czekaj dla stabilności
+//     }
+     HAL_Delay(250); // Opóźnienie dla stabilnego działania
+
+//////////////////////////////////////
+
+     I2C_Scan();
+     //SetResistance(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
