@@ -58,7 +58,10 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, ABS_Pin|PARKING_BRAKE_Pin|BRAKE_WEAR_SENS_Pin|COOLANT_LVL_SENS_Pin
-                          |WASHER_FLU_LVL_Pin|D2_Pin|D1_Pin|Fuel_HVC_Pin, GPIO_PIN_RESET);
+                          |WASHER_FLU_LVL_Pin|D2_Pin|D1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Fuel_HVC_GPIO_Port, Fuel_HVC_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : STM_ESP_Pin */
   GPIO_InitStruct.Pin = STM_ESP_Pin;

@@ -125,7 +125,7 @@ typedef struct {
 #define MIN_FREQ 25      // 100 Hz
 #define MAX_FREQ 1770  // 1770 kHz
 
-#define MCP4662_ADDR  (0x2C << 1)  // Adres I2C
+// MCP4662 defines
 #define MCP4662_ADDR_WRITE  (0x2C << 1)  // Adres I²C + bit zapisu (0)
 #define MCP4662_ADDR_READ   (0x2C << 1 | 1)  // Adres I²C + bit odczytu (1)
 #define TCON_REGISTER       0x04
@@ -270,9 +270,14 @@ void wiper_command(I2C_HandleTypeDef *hi2c, uint8_t wiper, uint8_t command) {
         return; // Nieprawidłowy wybór wipera
     }
 
-    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR, &cmd, 1, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, &cmd, 1, HAL_MAX_DELAY);
 }
 void WriteWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg, uint16_t value) {
+//    if (wiper_reg != 0x00 && wiper_reg != 0x01) {
+//        printf("ERROR: Invalid Wiper Register!\n");
+//        return;
+//    }
+
     uint8_t command_byte = (wiper_reg << 4) | 0x00; // CC = 00 (Write)
     uint8_t data[2];
 
@@ -284,9 +289,16 @@ void WriteWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg, uint16_t value) {
     data[1] = value & 0xFF;        // Starsze 8 bitów idą na koniec
 
     // Wysłanie bajtu komendy + 2 bajtów danych
-    HAL_I2C_Master_Transmit(hi2c, (0x2D << 1), &command_byte, 1, HAL_MAX_DELAY);
-    HAL_I2C_Master_Transmit(hi2c, (0x2D << 1), data, 2, HAL_MAX_DELAY);
+    if (HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, &command_byte, 1, HAL_MAX_DELAY) != HAL_OK) {
+        printf("Wiper command sending error!\n");
+        return;
+    }
+    if (HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, data, 2, HAL_MAX_DELAY) != HAL_OK) {
+        printf("Wiper data setting error!\n");
+        return;
+    }
 }
+
 
 
 uint8_t CalculateWiperValue(uint16_t resistance)
@@ -303,7 +315,7 @@ void SetResistance(uint16_t resistance)
     uint8_t data[1] = {0x14}; // 0x00 - adres WIPER0
     uint8_t data1[1] = {0x84}; // 0x00 - adres WIPER1
 
-    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, data, 1, 100) == HAL_OK)
+    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR_WRITE, data, 1, 100) == HAL_OK)
     {
         printf("Ustawiono rezystancję na: %dΩ (wartość rejestru: %d)\r\n", resistance, wiper_value);
     }
@@ -311,7 +323,7 @@ void SetResistance(uint16_t resistance)
     {
         printf("Błąd ustawiania rezystancji\r\n");
     }
-    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, data1, 1, 100) == HAL_OK)
+    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR_WRITE, data1, 1, 100) == HAL_OK)
      {
          printf("Ustawiono rezystancję na: %dΩ (wartość rejestru: %d)\r\n", resistance, wiper_value);
      }
@@ -599,33 +611,38 @@ int main(void)
 
 
   uint8_t increasing0 = 1, increasing1 = 1; // Flagi dla obu wiperów
+  uint8_t reset_cmd = 0x06; // Komenda General Call Reset
+//HAL_I2C_Master_Transmit(&hi2c1, 0x00, &reset_cmd, 1, HAL_MAX_DELAY);
+HAL_Delay(10);
+SetTCON(&hi2c1, 0x33 );  // Podłącza piny A, W, B dla obu wiperów  //0x34 //0xBB - HW ON -A OFF  //33 - HW OFF
+HAL_Delay(10);
+
+
+
+   // uint8_t set_wiper[2] = {0x00, 0xc8}; // Środkowa wartość (128)
+  //  HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR_WRITE, set_wiper, 2, HAL_MAX_DELAY);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  uint8_t reset_cmd = 0x06; // Komenda General Call Reset
-	HAL_I2C_Master_Transmit(&hi2c1, 0x00, &reset_cmd, 1, HAL_MAX_DELAY);
-	HAL_Delay(10); // Czekamy na restart układu
-	SetTCON(&hi2c1, 0x34 );  // Podłącza piny A, W, B dla obu wiperów
 
 	 process_frame();
 	 speed = frame.speed * 3.6;
      Set_PWM_Frequency(speed);
 ////////////////////////
-     WriteWiper(&hi2c1, 0x00, 00);
-     WriteWiper(&hi2c1, 0x01, 00);
-     uint16_t wiper0 = ReadWiper(&hi2c1, 0x00); // Wiper 0
-     uint16_t wiper1 = ReadWiper(&hi2c1, 0x01); // Wiper 1
+     uint16_t wiper0 = ReadWiper(&hi2c1, VOLATILE_WIPER_0); // Wiper 0
+     uint16_t wiper1 = ReadWiper(&hi2c1, VOLATILE_WIPER_1); // Wiper 1
      uint16_t tcon = MCP4662_ReadTCON(&hi2c1);  // TCON
 
      printf("Wiper 0 value: %d\n", wiper0);
      printf("Wiper 1 value: %d\n", wiper1);
      printf("TCON: 0x%03X\n", tcon);
 
-//    uint8_t set_wiper[2] = {0x00, 0x80}; // Środkowa wartość (128)
- //   HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, set_wiper, 2, HAL_MAX_DELAY);
+     //WriteWiper(&hi2c1, VOLATILE_WIPER_0, 0x80);
+     //WriteWiper(&hi2c1, VOLATILE_WIPER_1, 0x80);
 //
 //      Interpretacja bitów:
          uint8_t GCEN = (tcon >> 8) & 0x01;  // Bit 8 (GCEN)
@@ -699,7 +716,27 @@ int main(void)
 //
 //         //HAL_Delay(50); // Czekaj dla stabilności
 //     }
-     HAL_Delay(250); // Opóźnienie dla stabilnego działania
+//     HAL_Delay(250); // Opóźnienie dla stabilnego działania
+/////////////////////////////////////
+
+         uint16_t target0 = (uint16_t)(0.2 * 255);
+         uint16_t target1 = (uint16_t)(0.2 * 255);
+
+             if (wiper0 < target0) {
+                 wiper_command(&hi2c1, 0, 0x04); // Inkrementacja
+                 wiper0++;
+             } else if (wiper0 > target0) {
+                 wiper_command(&hi2c1, 0, 0x08); // Dekrementacja
+                 wiper0--;
+             }
+
+             if (wiper1 < target1) {
+                 wiper_command(&hi2c1, 1, 0x04); // Inkrementacja
+                 wiper1++;
+             } else if (wiper1 > target1) {
+                 wiper_command(&hi2c1, 1, 0x08); // Dekrementacja
+                 wiper1--;
+             }
 
 //////////////////////////////////////
 
