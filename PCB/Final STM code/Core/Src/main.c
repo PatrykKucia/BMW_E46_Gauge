@@ -125,9 +125,9 @@ typedef struct {
 #define MIN_FREQ 25      // 100 Hz
 #define MAX_FREQ 1770  // 1770 kHz
 
-#define MCP4662_ADDR  (0x2D << 1)  // Adres I2C
-#define MCP4662_ADDR_WRITE  (0x2D << 1)  // Adres I²C + bit zapisu (0)
-#define MCP4662_ADDR_READ   (0x2D << 1 | 1)  // Adres I²C + bit odczytu (1)
+#define MCP4662_ADDR  (0x2C << 1)  // Adres I2C
+#define MCP4662_ADDR_WRITE  (0x2C << 1)  // Adres I²C + bit zapisu (0)
+#define MCP4662_ADDR_READ   (0x2C << 1 | 1)  // Adres I²C + bit odczytu (1)
 #define TCON_REGISTER       0x04
 #define R_TOTAL       5000
 #define R_MIN         75
@@ -184,22 +184,45 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void SetTCON(I2C_HandleTypeDef *hi2c, uint16_t value) {
+    uint8_t data[3];
+
+    // Rejestr TCON (0x04), Write = 00
+    data[0] = (0x04 << 4) | 0x00;
+
+    // 9-bitowa wartość TCON
+    value &= 0x01FF;
+    data[2] = (value >> 8) & 0x01; // MSB (1 bit)
+    data[1] = value & 0xFF;        // LSB (8 bitów)
+
+    // Wysłanie komendy + 2 bajtów wartości
+    if (HAL_I2C_Master_Transmit(hi2c, (0x2C << 1), data, 3, HAL_MAX_DELAY) != HAL_OK) {
+        printf("⚠️ Błąd zapisu do TCON!\n");
+    }
+}
+
+
+
 uint16_t MCP4662_ReadTCON(I2C_HandleTypeDef *hi2c) {
-    uint8_t reg_addr = TCON_REGISTER;
+    uint8_t command_byte = (0x04 << 4) | 0x0C; // Rejestr TCON, CC = 11 (Read)
     uint8_t data[2] = {0};
-    uint16_t tcon_value = 0;
 
-    // Wysłanie adresu rejestru TCON
-    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, &reg_addr, 1, HAL_MAX_DELAY);
+    // Wysłanie bajtu komendy
+    if (HAL_I2C_Master_Transmit(hi2c, (0x2C << 1), &command_byte, 1, HAL_MAX_DELAY) != HAL_OK) {
+        return 0xFFFF; // Kod błędu
+    }
 
-    // Odczyt 2 bajtów (16 bitów)
-    HAL_I2C_Master_Receive(hi2c, MCP4662_ADDR_READ, data, 2, HAL_MAX_DELAY);
+    // Odczyt danych (9-bitowa wartość, ale zwracamy 16-bitową zmienną)
+    if (HAL_I2C_Master_Receive(hi2c, (0x2C << 1) | 1, data, 2, HAL_MAX_DELAY) != HAL_OK) {
+        return 0xFFFF; // Kod błędu
+    }
 
-    // Połączenie danych (GCEN jest w pierwszym bajcie, pozostałe w drugim)
-    tcon_value = (data[0] << 8) | data[1];  // 16-bitowa wartość
+    // Połączenie danych (TCON ma 9 bitów, więc maskujemy)
+    uint16_t tcon_value = ((data[0] << 8) | data[1]) & 0x01FF;
 
     return tcon_value;
 }
+
 void MCP4662_WriteTCON(I2C_HandleTypeDef *hi2c, uint16_t tcon_value) {
     uint8_t data[3];
     data[0] = TCON_REGISTER;  // Adres rejestru
@@ -219,13 +242,23 @@ int __io_putchar(int ch) //function used to print() in usart
   return 1;
 }
 uint16_t ReadWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg) {
+    uint8_t command_byte = (wiper_reg << 4) | 0x0C; // CC = 11 (Read)
     uint8_t data[2] = {0};
-    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR, &wiper_reg, 1, HAL_MAX_DELAY);
-    HAL_I2C_Master_Receive(hi2c, MCP4662_ADDR, data, 2, HAL_MAX_DELAY);
+
+    // Wysłanie bajtu komendy
+    if (HAL_I2C_Master_Transmit(hi2c, (0x2C << 1), &command_byte, 1, HAL_MAX_DELAY) != HAL_OK) {
+        return 0xFFFF; // Kod błędu
+    }
+
+    // Odczyt 10-bitowego wiper value
+    if (HAL_I2C_Master_Receive(hi2c, (0x2C << 1) | 1, data, 2, HAL_MAX_DELAY) != HAL_OK) {
+        return 0xFFFF; // Kod błędu
+    }
 
     uint16_t wiper_value = ((data[0] << 8) | data[1]) & 0x03FF; // 10-bitowy wynik
     return wiper_value;
 }
+
 void wiper_command(I2C_HandleTypeDef *hi2c, uint8_t wiper, uint8_t command) {
     uint8_t cmd;
 
@@ -239,6 +272,22 @@ void wiper_command(I2C_HandleTypeDef *hi2c, uint8_t wiper, uint8_t command) {
 
     HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR, &cmd, 1, HAL_MAX_DELAY);
 }
+void WriteWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg, uint16_t value) {
+    uint8_t command_byte = (wiper_reg << 4) | 0x00; // CC = 00 (Write)
+    uint8_t data[2];
+
+    // Ograniczenie wartości do 10 bitów
+    value &= 0x03FF;
+
+    // Przygotowanie danych do wysłania
+    data[0] = (value >> 8) & 0x03; // Młodsze 2 bity idą na początek
+    data[1] = value & 0xFF;        // Starsze 8 bitów idą na koniec
+
+    // Wysłanie bajtu komendy + 2 bajtów danych
+    HAL_I2C_Master_Transmit(hi2c, (0x2D << 1), &command_byte, 1, HAL_MAX_DELAY);
+    HAL_I2C_Master_Transmit(hi2c, (0x2D << 1), data, 2, HAL_MAX_DELAY);
+}
+
 
 uint8_t CalculateWiperValue(uint16_t resistance)
 {
@@ -556,38 +605,50 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  uint8_t reset_cmd = 0x06; // Komenda General Call Reset
+	HAL_I2C_Master_Transmit(&hi2c1, 0x00, &reset_cmd, 1, HAL_MAX_DELAY);
+	HAL_Delay(10); // Czekamy na restart układu
+	SetTCON(&hi2c1, 0x34 );  // Podłącza piny A, W, B dla obu wiperów
+
 	 process_frame();
 	 speed = frame.speed * 3.6;
      Set_PWM_Frequency(speed);
 ////////////////////////
-//     uint16_t wiper0 = ReadWiper(&hi2c1, VOLATILE_WIPER_0);
-//     uint16_t wiper1 = ReadWiper(&hi2c1, VOLATILE_WIPER_1);
-//     printf("Wiper 0 value: %d\n", wiper0);
-//     printf("Wiper 1 value: %d\n", wiper1);
-//     uint8_t set_wiper[2] = {0x00, 0x80}; // Środkowa wartość (128)
-//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, set_wiper, 2, HAL_MAX_DELAY);
+     WriteWiper(&hi2c1, 0x00, 00);
+     WriteWiper(&hi2c1, 0x01, 00);
+     uint16_t wiper0 = ReadWiper(&hi2c1, 0x00); // Wiper 0
+     uint16_t wiper1 = ReadWiper(&hi2c1, 0x01); // Wiper 1
+     uint16_t tcon = MCP4662_ReadTCON(&hi2c1);  // TCON
+
+     printf("Wiper 0 value: %d\n", wiper0);
+     printf("Wiper 1 value: %d\n", wiper1);
+     printf("TCON: 0x%03X\n", tcon);
+
+//    uint8_t set_wiper[2] = {0x00, 0x80}; // Środkowa wartość (128)
+ //   HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, set_wiper, 2, HAL_MAX_DELAY);
 //
-//     uint16_t tcon = MCP4662_ReadTCON(&hi2c1);
-//     // Interpretacja bitów:
-//         uint8_t GCEN = (tcon >> 8) & 0x01;  // Bit 8 (GCEN)
-//         uint8_t R1HW = (tcon >> 7) & 0x01;  // Bit 7
-//         uint8_t R1A  = (tcon >> 6) & 0x01;  // Bit 6
-//         uint8_t R1W  = (tcon >> 5) & 0x01;  // Bit 5
-//         uint8_t R1B  = (tcon >> 4) & 0x01;  // Bit 4
-//         uint8_t R0HW = (tcon >> 3) & 0x01;  // Bit 3
-//         uint8_t R0A  = (tcon >> 2) & 0x01;  // Bit 2
-//         uint8_t R0W  = (tcon >> 1) & 0x01;  // Bit 1
-//         uint8_t R0B  = (tcon >> 0) & 0x01;  // Bit 0
+//      Interpretacja bitów:
+         uint8_t GCEN = (tcon >> 8) & 0x01;  // Bit 8 (GCEN)
+         uint8_t R1HW = (tcon >> 7) & 0x01;  // Bit 7
+         uint8_t R1A  = (tcon >> 6) & 0x01;  // Bit 6
+         uint8_t R1W  = (tcon >> 5) & 0x01;  // Bit 5
+         uint8_t R1B  = (tcon >> 4) & 0x01;  // Bit 4
+         uint8_t R0HW = (tcon >> 3) & 0x01;  // Bit 3
+         uint8_t R0A  = (tcon >> 2) & 0x01;  // Bit 2
+         uint8_t R0W  = (tcon >> 1) & 0x01;  // Bit 1
+         uint8_t R0B  = (tcon >> 0) & 0x01;  // Bit 0
 //
 //         printf("TCON: 0x%04X\n", tcon);
-//         printf("GCEN: %d\n", GCEN);
-//         printf("R1HW: %d, R1A: %d, R1W: %d, R1B: %d\n", R1HW, R1A, R1W, R1B);
-//         printf("R0HW: %d, R0A: %d, R0W: %d, R0B: %d\n", R0HW, R0A, R0W, R0B);
+         printf("GCEN: %d\n", GCEN);
+         printf("R1HW: %d, R1A: %d, R1W: %d, R1B: %d\n", R1HW, R1A, R1W, R1B);
+         printf("R0HW: %d, R0A: %d, R0W: %d, R0B: %d\n", R0HW, R0A, R0W, R0B);
+
+//         wiper_command(&hi2c1, 0, 0x44);
 //
 //         // Przykład: Włączenie GCEN i ustawienie R1A=1, R0W=1
 //         uint16_t all_ones_tcon = 0x01FF;
 //         uint16_t new_tcon_value = 0x0181;
-//         MCP4662_WriteTCON(&hi2c1, new_tcon_value);
+ //        MCP4662_WriteTCON(&hi2c1, new_tcon_value);
 //////////////////////////////
 
 //
@@ -642,7 +703,7 @@ int main(void)
 
 //////////////////////////////////////
 
-     I2C_Scan();
+   //  I2C_Scan();
      //SetResistance(500);
     /* USER CODE END WHILE */
 
