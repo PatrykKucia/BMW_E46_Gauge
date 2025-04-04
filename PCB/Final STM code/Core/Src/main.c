@@ -614,7 +614,7 @@ int main(void)
   uint8_t reset_cmd = 0x06; // Komenda General Call Reset
 //HAL_I2C_Master_Transmit(&hi2c1, 0x00, &reset_cmd, 1, HAL_MAX_DELAY);
 HAL_Delay(10);
-SetTCON(&hi2c1, 0x33 );  // Podłącza piny A, W, B dla obu wiperów  //0x34 //0xBB - HW ON -A OFF  //33 - HW OFF
+SetTCON(&hi2c1, 0xbb );  // Podłącza piny A, W, B dla obu wiperów  //0x34 //0xBB - HW ON -A OFF  //33 - HW OFF
 HAL_Delay(10);
 
 
@@ -637,9 +637,9 @@ HAL_Delay(10);
      uint16_t wiper1 = ReadWiper(&hi2c1, VOLATILE_WIPER_1); // Wiper 1
      uint16_t tcon = MCP4662_ReadTCON(&hi2c1);  // TCON
 
-     printf("Wiper 0 value: %d\n", wiper0);
-     printf("Wiper 1 value: %d\n", wiper1);
-     printf("TCON: 0x%03X\n", tcon);
+//     printf("Wiper 0 value: %d\n", wiper0);
+//     printf("Wiper 1 value: %d\n", wiper1);
+//     printf("TCON: 0x%03X\n", tcon);
 
      //WriteWiper(&hi2c1, VOLATILE_WIPER_0, 0x80);
      //WriteWiper(&hi2c1, VOLATILE_WIPER_1, 0x80);
@@ -656,9 +656,9 @@ HAL_Delay(10);
          uint8_t R0B  = (tcon >> 0) & 0x01;  // Bit 0
 //
 //         printf("TCON: 0x%04X\n", tcon);
-         printf("GCEN: %d\n", GCEN);
-         printf("R1HW: %d, R1A: %d, R1W: %d, R1B: %d\n", R1HW, R1A, R1W, R1B);
-         printf("R0HW: %d, R0A: %d, R0W: %d, R0B: %d\n", R0HW, R0A, R0W, R0B);
+//         printf("GCEN: %d\n", GCEN);
+//         printf("R1HW: %d, R1A: %d, R1W: %d, R1B: %d\n", R1HW, R1A, R1W, R1B);
+//         printf("R0HW: %d, R0A: %d, R0W: %d, R0B: %d\n", R0HW, R0A, R0W, R0B);
 
 //         wiper_command(&hi2c1, 0, 0x44);
 //
@@ -719,8 +719,8 @@ HAL_Delay(10);
 //     HAL_Delay(250); // Opóźnienie dla stabilnego działania
 /////////////////////////////////////
 
-         uint16_t target0 = (uint16_t)(0.2 * 255);
-         uint16_t target1 = (uint16_t)(0.2 * 255);
+         uint16_t target0 = (uint16_t)(0.08 * 255);//0.1 - 570ohm/off  0=1/4   0.01= ~half 0.03-half
+         uint16_t target1 = (uint16_t)(0.08 * 255);
 
              if (wiper0 < target0) {
                  wiper_command(&hi2c1, 0, 0x04); // Inkrementacja
