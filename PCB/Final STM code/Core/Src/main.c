@@ -169,6 +169,7 @@ bool isOilWarning;
 bool isBatteryWarning;
 bool isLeftSignal;
 bool isRightSignal;
+uint16_t alive_counter;
 
 static float previous_fuel = 0;
 static uint32_t previous_time = 0;
@@ -201,8 +202,6 @@ void SetTCON(I2C_HandleTypeDef *hi2c, uint16_t value) {
     }
 }
 
-
-
 uint16_t MCP4662_ReadTCON(I2C_HandleTypeDef *hi2c) {
     uint8_t command_byte = (0x04 << 4) | 0x0C; // Rejestr TCON, CC = 11 (Read)
     uint8_t data[2] = {0};
@@ -223,14 +222,6 @@ uint16_t MCP4662_ReadTCON(I2C_HandleTypeDef *hi2c) {
     return tcon_value;
 }
 
-void MCP4662_WriteTCON(I2C_HandleTypeDef *hi2c, uint16_t tcon_value) {
-    uint8_t data[3];
-    data[0] = TCON_REGISTER;  // Adres rejestru
-    data[1] = (tcon_value >> 8) & 0xFF;  // GCEN (bit 8) & ////////////0x01
-    data[2] = tcon_value & 0xFF;         // Pozostałe 8 bitów
-
-    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, data, 3, HAL_MAX_DELAY);
-}
 int __io_putchar(int ch) //function used to print() in usart
 {
   if (ch == '\n') {
@@ -272,66 +263,7 @@ void wiper_command(I2C_HandleTypeDef *hi2c, uint8_t wiper, uint8_t command) {
 
     HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, &cmd, 1, HAL_MAX_DELAY);
 }
-void WriteWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg, uint16_t value) {
-//    if (wiper_reg != 0x00 && wiper_reg != 0x01) {
-//        printf("ERROR: Invalid Wiper Register!\n");
-//        return;
-//    }
 
-    uint8_t command_byte = (wiper_reg << 4) | 0x00; // CC = 00 (Write)
-    uint8_t data[2];
-
-    // Ograniczenie wartości do 10 bitów
-    value &= 0x03FF;
-
-    // Przygotowanie danych do wysłania
-    data[0] = (value >> 8) & 0x03; // Młodsze 2 bity idą na początek
-    data[1] = value & 0xFF;        // Starsze 8 bitów idą na koniec
-
-    // Wysłanie bajtu komendy + 2 bajtów danych
-    if (HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, &command_byte, 1, HAL_MAX_DELAY) != HAL_OK) {
-        printf("Wiper command sending error!\n");
-        return;
-    }
-    if (HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, data, 2, HAL_MAX_DELAY) != HAL_OK) {
-        printf("Wiper data setting error!\n");
-        return;
-    }
-}
-
-
-
-uint8_t CalculateWiperValue(uint16_t resistance)
-{
-    if (resistance < R_MIN) resistance = R_MIN;
-    if (resistance > (R_TOTAL - R_MIN)) resistance = R_TOTAL - R_MIN;
-
-    return (uint8_t)((resistance - R_MIN) / R_STEP);
-}
-
-void SetResistance(uint16_t resistance)
-{
-    uint8_t wiper_value = CalculateWiperValue(resistance);
-    uint8_t data[1] = {0x14}; // 0x00 - adres WIPER0
-    uint8_t data1[1] = {0x84}; // 0x00 - adres WIPER1
-
-    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR_WRITE, data, 1, 100) == HAL_OK)
-    {
-        printf("Ustawiono rezystancję na: %dΩ (wartość rejestru: %d)\r\n", resistance, wiper_value);
-    }
-    else
-    {
-        printf("Błąd ustawiania rezystancji\r\n");
-    }
-    if (HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR_WRITE, data1, 1, 100) == HAL_OK)
-     {
-         printf("Ustawiono rezystancję na: %dΩ (wartość rejestru: %d)\r\n", resistance, wiper_value);
-     }
-     else
-     {
-         printf("Błąd ustawiania rezystancji\r\n");
-     }
-}
 void ESP32_SendCommand(const char* command) {
     HAL_UART_Transmit(&huart1, (uint8_t*)command, strlen(command), HAL_MAX_DELAY);
     HAL_UART_Transmit(&huart1, (uint8_t*)"\r\n", 2, HAL_MAX_DELAY);  // Końcówka komendy AT
@@ -478,7 +410,17 @@ void parse_frame(uint8_t *buffer) {
     modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
 
-    HAL_GPIO_TogglePin(D3_GPIO_Port, D3_Pin);  // Diagnostyka
+    modify_can_frame_byte(FRAME_153, 0, 0x00);   // Byte 0 - żadnych interwencji
+    modify_can_frame_byte(FRAME_153, 1, 0x00);   // Byte 1 - VSS bity + statusy wyłączone
+    modify_can_frame_byte(FRAME_153, 2, 0x00);   // Byte 2 - prędkość niska (MSB)
+    modify_can_frame_byte(FRAME_153, 3, 0x00);   // Byte 3 - brak redukcji momentu
+    modify_can_frame_byte(FRAME_153, 4, 0x00);   // Byte 4 - brak MSR ingerencji
+    modify_can_frame_byte(FRAME_153, 5, 0x00);   // Byte 5 - unused
+    modify_can_frame_byte(FRAME_153, 6, 0x00);   // Byte 6 - brak redukcji momentu ASC LM
+    modify_can_frame_byte(FRAME_153, 7, 0x00);  // Byte 7 - alive counter
+
+
+    HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);  // Diagnostyka
 
 //	if (frame.throttle == 0x00) frame.throttle = 0x01; // Minimalna wartość to 0x01
 //	 	 modify_can_frame_byte(FRAME_329, 5, frame.throttle * 256.0f);
@@ -599,7 +541,7 @@ int main(void)
  // HAL_Delay(1000);
  // ESP32_SendCommand("AT+CWMODE=1");  // Ustaw tryb stacji (klient Wi-Fi)
  // HAL_Delay(1000);
- // ESP32_SendCommand("AT+CWJAP=\"PLAY_Swiatlowod_19A1\",\"t8Xv9auf7Z#D\"");  // Połącz z Wi-Fi
+ // ESP32_SendCommand("AT+CWJAP=\"PLAY_Swiatlowod_19A1\",\"t8Xv9auf7Z#D\"");  // Wi-Fi //AT+CWJAP="PLAY_Swiatlowod_19A1","t8Xv9auf7Z#D" - if connection lost/MCU replaced
   HAL_Delay(5000);
   ESP32_SendCommand("AT+CIPSTART=\"UDP\",\"0.0.0.0\",12345,12345,2");  // Ustaw tryb UDP
   HAL_Delay(1000);
@@ -719,8 +661,8 @@ HAL_Delay(10);
 //     HAL_Delay(250); // Opóźnienie dla stabilnego działania
 /////////////////////////////////////
 
-         uint16_t target0 = (uint16_t)(0.08 * 255);//0.1 - 570ohm/off  0=1/4   0.01= ~half 0.03-half
-         uint16_t target1 = (uint16_t)(0.08 * 255);
+         uint16_t target0 = (uint16_t)(0.01 * 255);//0.1 - 570ohm/off  0=1/4   0.01= ~half 0.03-half
+         uint16_t target1 = (uint16_t)(0.01 * 255);
 
              if (wiper0 < target0) {
                  wiper_command(&hi2c1, 0, 0x04); // Inkrementacja
@@ -847,7 +789,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	     SendCANFrame(FRAME_316);  // Wysyła ramkę o ID 0x316
 	     SendCANFrame(FRAME_329);  // Wysyła ramkę o ID 0x329
 	     SendCANFrame(FRAME_545);  // Wysyła ramkę o ID 0x545
-
+	     SendCANFrame(FRAME_153);
+	    // SendCANFrame(FRAME_1F3); 20 ms refresh rate Its sent out by the tractiuon control module DSC at a refresh rate of 20ms
+	    //AX and AY maybe stand for accelleration X and Y axis of the car.
 	 }
 	 if (htim == &htim3)
 	 {
