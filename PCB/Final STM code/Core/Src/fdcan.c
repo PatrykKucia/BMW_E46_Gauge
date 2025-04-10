@@ -25,6 +25,8 @@ CAN_Frame frames[FRAME_COUNT] = {
     { .header.Identifier = 0x316, .data = {0} },
     { .header.Identifier = 0x329, .data = {0} },
     { .header.Identifier = 0x545, .data = {0} },
+	{ .header.Identifier = 0x153, .data = {0} },
+	{ .header.Identifier = 0x1F3, .data = {0} },
 };
 /* USER CODE END 0 */
 

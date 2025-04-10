@@ -39,6 +39,8 @@ typedef enum {
     FRAME_316 = 0,
     FRAME_329,
     FRAME_545,
+	FRAME_153,
+	FRAME_1F3,
     FRAME_COUNT  // automatic frame count
 } CAN_FrameIndex;
 

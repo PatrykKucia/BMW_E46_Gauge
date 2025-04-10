@@ -170,7 +170,7 @@ bool isBatteryWarning;
 bool isLeftSignal;
 bool isRightSignal;
 uint16_t alive_counter;
-
+uint8_t frame1F3_counter = 0;
 static float previous_fuel = 0;
 static uint32_t previous_time = 0;
 
@@ -297,42 +297,48 @@ void InitAnalogIndicators(){
 	 HAL_GPIO_WritePin(BATT_CHARGE_LIGHT_GPIO_Port, BATT_CHARGE_LIGHT_Pin, RESET);//RESET to off temp
 
 	 //HAL_GPIO_WritePin(BACKLIGHT_GPIO_Port, BACKLIGHT_Pin, RESET);//RESET to off ------------NOT WORKING
-	 modify_can_frame_byte(FRAME_316, 0, 0x0D);
-	 modify_can_frame_byte(FRAME_316, 1, 0xff);
+	 modify_can_frame_byte(FRAME_316, 0, 0x05);
+	 modify_can_frame_byte(FRAME_316, 1, 0x14);
+	 modify_can_frame_byte(FRAME_316, 4, 0x14);
+	 modify_can_frame_byte(FRAME_316, 5, 0x17);
+	 modify_can_frame_byte(FRAME_316, 6, 0x0);
+	 modify_can_frame_byte(FRAME_316, 7, 0x16);
 
-	 // Modify Byte 0: Multiplexed Information
-	 // Example: MUX_INFO[0] = 1, MUX_INFO[1] = 0, MUX_INFO[2] = 1, CAN_LEVEL = 0x11, OBD_STEUER = 0, MD_NORM = 0x3F
-	 modify_can_frame_byte(FRAME_316, 0, 0x3F);  // Binary: 00111111
 
-	 // Modify Byte 1: Engine Temperature (TEMP_ENG)
-	 // Example: Engine Temp = 50°C, Calculation = (HEX * 0.75) - 48°C => HEX = (50 + 48) / 0.75 = 130.67 ~ 0x83
-	 //modify_can_frame_byte(FRAME_316, 1, 0x83);  // 50°C
+	 modify_can_frame_byte(FRAME_153, 0, 0x00); // brak błędu
+	 modify_can_frame_byte(FRAME_153, 1, 0x00); // brak aktywnej interwencji DSC
+	 modify_can_frame_byte(FRAME_153, 2, 0x00); // zero flag
+	 modify_can_frame_byte(FRAME_153, 3, 0x00); // zero błędów
+	 modify_can_frame_byte(FRAME_153, 4, 0x00); // zero
+	 modify_can_frame_byte(FRAME_153, 5, 0x00); // zero
+	 modify_can_frame_byte(FRAME_153, 6, 0x00); // brak błędu
+	 modify_can_frame_byte(FRAME_153, 7, 0x00); // suma kontrolna lub pusty
 
-	 // Modify Byte 2: Ambient Pressure (AMP_CAN)
-	 // Example: Pressure = 900hPa, Calculation = (HEX * 2) + 598 => HEX = (900 - 598) / 2 = 151
-	 modify_can_frame_byte(FRAME_316, 2, 0x97);  // 900 hPa
 
-	 // Modify Byte 3: Bitfield (Switch States)
-	 // Example: LV_SWI_CLU = 1 (depressed), LV_LEVEL_IS = 0, LV_ACK_CRU_AD_ECU = 1 (ACK), LV_ERU_CAN = 1 (running)
-	 // STATE_MSW_CAN[0] = 1 (Set), STATE_MSW_CAN[1] = 2 (Deceleration), STATE_MSW_CAN[2] = 3 (Resume)
-	 modify_can_frame_byte(FRAME_316, 3, 0x97);  // Binary: 10010111 (depressed, ACK, engine running, set, deceleration, resume)
+	 modify_can_frame_byte(FRAME_545, 4, 0x7E);  // Unused byte
+	 modify_can_frame_byte(FRAME_545, 5, 0x10);  // Unused byte
+	 modify_can_frame_byte(FRAME_545, 6, 0x00);  // Unused byte
+	 modify_can_frame_byte(FRAME_545, 7, 0x18);  // Unused byte
 
-	 // Modify Byte 4: TPS Virtual CRU CAN (TPS_VIRT_CRU_CAN)
-	 // Example: TPS_VIRT_CRU_CAN = 0.25 (Calculated by HEX * 0.390625)
-	 // Let's assume HEX = 0x01, so 1 * 0.390625 = 0.390625 (0.25)
-	 modify_can_frame_byte(FRAME_316, 4, 0x01);  // 0.25 as virtual throttle position
 
-	 // Modify Byte 5: Accelerator Pedal Position (TPS_CAN)
-	 // Example: 25% throttle, Calculation = HEX * 0.390625 => HEX = 25 / 0.390625 = 64
-	 modify_can_frame_byte(FRAME_316, 5, 0x40);  // 25% throttle position
+	 modify_can_frame_byte(FRAME_329, 0, 0x07);  // Unused byte
+	 modify_can_frame_byte(FRAME_329, 2, 0xB2);  // Unused byte
+	 modify_can_frame_byte(FRAME_329, 3, 0x19);  // Unused byte
+	 modify_can_frame_byte(FRAME_329, 4, 0x00);  // Unused byte
+	 modify_can_frame_byte(FRAME_329, 5, 0xEE);  // Unused byte
+	 modify_can_frame_byte(FRAME_329, 6, 0x00);  // Unused byte
+	 modify_can_frame_byte(FRAME_329, 7, 0x00);  // Unused byte
 
-	 // Modify Byte 6: Bitfield (Brake Switch, Kickdown, etc.)
-	 // Example: LV_BS = 0 (not actuated), LV_ERR_BS = 0 (OK), LV_KD_CAN = 1 (active), STATE_CRU_CAN[1] = 1 (constant drive)
-	 modify_can_frame_byte(FRAME_316, 6, 0xF2);  // Binary: 11110010 (kickdown active, constant drive)
+	 modify_can_frame_byte(FRAME_1F3, 0, 0x00);
+	 modify_can_frame_byte(FRAME_1F3, 1, 0x00);
+	 modify_can_frame_byte(FRAME_1F3, 2, 0x00);
+	 modify_can_frame_byte(FRAME_1F3, 3, 0x00);
+	 modify_can_frame_byte(FRAME_1F3, 4, 0x00);
+	 modify_can_frame_byte(FRAME_1F3, 5, 0x00);
+	 modify_can_frame_byte(FRAME_1F3, 6, 0x00);
+	 modify_can_frame_byte(FRAME_1F3, 7, 0x00);
 
-	 // Modify Byte 7: Unused
-	 // As Byte 7 is unused, we set it to 0x00 for simplicity
-	 modify_can_frame_byte(FRAME_316, 7, 0x00);  // Unused byte
+
 }
 uint16_t calculate_fuel_consumption(float throttle, uint8_t gear) {
     if (throttle <= 0.0f) return 0x0000; // Brak spalania, jeśli pedał gazu nie jest wciśnięty
@@ -821,6 +827,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	     SendCANFrame(FRAME_316);  // Wysyła ramkę o ID 0x316
 	     SendCANFrame(FRAME_329);  // Wysyła ramkę o ID 0x329
 	     SendCANFrame(FRAME_545);  // Wysyła ramkę o ID 0x545
+	     SendCANFrame(FRAME_153);
+
+	     frame1F3_counter++;
+	     if (frame1F3_counter >= 2) {
+	         SendCANFrame(FRAME_1F3);
+	         frame1F3_counter = 0;
+	     }
+
+
+
 	    // SendCANFrame(FRAME_1F3); 20 ms refresh rate Its sent out by the tractiuon control module DSC at a refresh rate of 20ms
 	    //AX and AY maybe stand for accelleration X and Y axis of the car.
 	 }
