@@ -173,8 +173,9 @@ uint16_t alive_counter;
 uint8_t frame1F3_counter = 0;
 static float previous_fuel = 0;
 static uint32_t previous_time = 0;
-
-
+static uint16_t mpgloop = 0;
+static uint16_t prev_rpm = 0;
+static uint32_t rpm_integral = 0; // Do śledzenia historii
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -231,6 +232,28 @@ int __io_putchar(int ch) //function used to print() in usart
   HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
 
   return 1;
+}
+void Set_PWM_Frequency(uint16_t speed_kmh) {
+    uint32_t freq = MIN_FREQ + ((MAX_FREQ - MIN_FREQ) * speed_kmh) / MAX_SPEED;
+
+    uint32_t arr_value, psc_value;
+
+    if (freq < 3800) {
+        psc_value = (250000000 / (65536 * freq));
+        if (psc_value > 65535) psc_value = 65535;  // PSC nie może przekroczyć 16 bitów
+        arr_value = (250000000 / ((psc_value + 1) * freq)) - 1;
+    } else {
+        psc_value = 0;
+        arr_value = (250000000 / freq) - 1;
+    }
+
+    if (arr_value > 65535) arr_value = 65535;  // Ograniczenie ARR do 16 bitów
+    //printf("Speed: %d km/h, Freq: %lu Hz, PSC: %lu, ARR: %lu\n", speed_kmh, freq, psc_value, arr_value);
+
+    __HAL_TIM_SET_PRESCALER(&htim1, psc_value);
+    __HAL_TIM_SET_AUTORELOAD(&htim1, arr_value);
+    //__HAL_TIM_SET_COUNTER(&htim1, 0);
+
 }
 uint16_t ReadWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg) {
     uint8_t command_byte = (wiper_reg << 4) | 0x0C; // CC = 11 (Read)
@@ -305,7 +328,7 @@ void InitAnalogIndicators(){
 	 modify_can_frame_byte(FRAME_316, 7, 0x16);
 
 
-	 modify_can_frame_byte(FRAME_153, 0, 0x00); // brak błędu
+	 modify_can_frame_byte(FRAME_153, 0, 0x00); // brak błędu //06 //ff to turn on
 	 modify_can_frame_byte(FRAME_153, 1, 0x00); // brak aktywnej interwencji DSC
 	 modify_can_frame_byte(FRAME_153, 2, 0x00); // zero flag
 	 modify_can_frame_byte(FRAME_153, 3, 0x00); // zero błędów
@@ -360,9 +383,6 @@ uint16_t calculate_fuel_consumption(float throttle, uint8_t gear) {
 
 
 void parse_frame(uint8_t *buffer) {
-
-
-    // Parsowanie danych z FrameBuffer do struktury FrameData
     uint8_t offset = 0;
 
     memcpy(&frame.time, &buffer[offset], sizeof(frame.time));
@@ -424,12 +444,6 @@ void parse_frame(uint8_t *buffer) {
 
     memcpy(&frame.id, &buffer[offset], sizeof(frame.id));
 
-    uint16_t hexValue_RPM = (uint16_t)(frame.rpm / 0.15625);  // Rzutowanie na uint16_t
-    uint8_t lsb = hexValue_RPM & 0xFF;  // Pobranie 8 najmłodszych bitów
-    uint8_t msb = (hexValue_RPM >> 8) & 0xFF;  // Pobranie 8 najbardziej znaczących bitów
-
-    uint8_t hexValue_temperature = ((frame.engTemp + 48.0) / 0.75) ;
-
     isTurboActive = frame.flags & OG_TURBO;
     isMetric = frame.flags & OG_KM;
     prefersBar = frame.flags & OG_BAR;
@@ -444,6 +458,29 @@ void parse_frame(uint8_t *buffer) {
     isLeftSignal = frame.showLights & DL_SIGNAL_L;
     isRightSignal = frame.showLights & DL_SIGNAL_R;
 
+
+
+    HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);  // Diagnostyka
+//	if (frame.throttle == 0x00) frame.throttle = 0x01; // Minimalna wartość to 0x01
+//	 	 modify_can_frame_byte(FRAME_329, 5, frame.throttle * 256.0f);
+//
+//    uint16_t fuel_value = calculate_fuel_consumption(frame.throttle, frame.gear);
+//    uint8_t fuel_lsb = fuel_value & 0xFF;
+//    uint8_t fuel_msb = (fuel_value >> 8) & 0xFF;
+//
+//    modify_can_frame_byte(FRAME_545, 1, fuel_lsb);
+//    modify_can_frame_byte(FRAME_545, 2, fuel_msb);
+}
+void Modify_Values(){
+	speed = frame.speed * 3.6;
+    Set_PWM_Frequency(speed);
+
+    uint16_t hexValue_RPM = (uint16_t)(frame.rpm / 0.15625);  // Rzutowanie na uint16_t
+    uint8_t lsb = hexValue_RPM & 0xFF;  // Pobranie 8 najmłodszych bitów
+    uint8_t msb = (hexValue_RPM >> 8) & 0xFF;  // Pobranie 8 najbardziej znaczących bitów
+
+    uint8_t hexValue_temperature = ((frame.engTemp + 48.0) / 0.75) ;
+
     modify_can_frame_byte(FRAME_316, 2, lsb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
@@ -457,20 +494,61 @@ void parse_frame(uint8_t *buffer) {
     	modify_can_frame_bit(FRAME_545, 3, 3, 0);
     }
 
+//    if (mpgloop == 0xFFFF) {
+//        mpgloop = 0x0;
+//    } else {
+//        mpgloop += frame.rpm / 130;
+//    }
+//    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);  // Lower byte of mpgloop
+//    modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);    // Higher byte of mpgloop
+    if (mpgloop == 0xFFFF) {
+        mpgloop = 0x0;
+    } else {
+        // Oblicz zmianę RPM (pochodną)
+        int16_t rpm_delta = frame.rpm - prev_rpm;
 
-    HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);  // Diagnostyka
+        // Część dynamiczna - reaguje na zmiany obrotów
+        int16_t dynamic_component = 0;
+        if (rpm_delta > 0) {
+            dynamic_component = rpm_delta * 3; // Silna reakcja na przyspieszenie
+        } else if (rpm_delta < 0) {
+            dynamic_component = rpm_delta; // Słabsza reakcja na zwalnianie
+        }
 
-//	if (frame.throttle == 0x00) frame.throttle = 0x01; // Minimalna wartość to 0x01
-//	 	 modify_can_frame_byte(FRAME_329, 5, frame.throttle * 256.0f);
-//
-//    uint16_t fuel_value = calculate_fuel_consumption(frame.throttle, frame.gear);
-//    uint8_t fuel_lsb = fuel_value & 0xFF;
-//    uint8_t fuel_msb = (fuel_value >> 8) & 0xFF;
-//
-//    modify_can_frame_byte(FRAME_545, 1, fuel_lsb);
-//    modify_can_frame_byte(FRAME_545, 2, fuel_msb);
-}
+        // Część statyczna - zależy od aktualnych obrotów
+        uint16_t static_component = frame.rpm / 50; // Dostosuj dzielnik
 
+        // Suma obu komponentów
+        int32_t new_mpgloop = mpgloop + dynamic_component + static_component;
+
+        // Jeśli pedał gazu puszczony - szybkie zmniejszanie
+        if (frame.throttle <= 0.2) {
+            new_mpgloop = 0; // Szybkie zmniejszanie new_mpgloop * 0.7
+        }
+
+        // Ograniczenia wartości
+        new_mpgloop = (new_mpgloop < 0) ? 0 : new_mpgloop;
+        mpgloop = (new_mpgloop > 0xFFFF) ? 0xFFFF : (uint16_t)new_mpgloop;
+
+        prev_rpm = frame.rpm;
+    }
+
+    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);
+    modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);
+
+    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);
+    modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);
+    if(isTractionCtrl)
+    {
+	 modify_can_frame_byte(FRAME_153, 0, 0x06); // brak błędu //06 //ff to turn on
+	 modify_can_frame_byte(FRAME_153, 1, 0xff); // brak aktywnej interwencji DSC
+    }
+    else
+    {
+   	 modify_can_frame_byte(FRAME_153, 0, 0x00); // brak błędu //06 //ff to turn on
+   	 modify_can_frame_byte(FRAME_153, 1, 0x00); // brak aktywnej interwencji DSC
+    }
+    }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
     uint8_t checksum = 0;
@@ -511,28 +589,7 @@ void process_frame(void) {
     }
 }
 
-void Set_PWM_Frequency(uint16_t speed_kmh) {
-    uint32_t freq = MIN_FREQ + ((MAX_FREQ - MIN_FREQ) * speed_kmh) / MAX_SPEED;
 
-    uint32_t arr_value, psc_value;
-
-    if (freq < 3800) {
-        psc_value = (250000000 / (65536 * freq));
-        if (psc_value > 65535) psc_value = 65535;  // PSC nie może przekroczyć 16 bitów
-        arr_value = (250000000 / ((psc_value + 1) * freq)) - 1;
-    } else {
-        psc_value = 0;
-        arr_value = (250000000 / freq) - 1;
-    }
-
-    if (arr_value > 65535) arr_value = 65535;  // Ograniczenie ARR do 16 bitów
-    //printf("Speed: %d km/h, Freq: %lu Hz, PSC: %lu, ARR: %lu\n", speed_kmh, freq, psc_value, arr_value);
-
-    __HAL_TIM_SET_PRESCALER(&htim1, psc_value);
-    __HAL_TIM_SET_AUTORELOAD(&htim1, arr_value);
-    //__HAL_TIM_SET_COUNTER(&htim1, 0);
-
-}
 /* USER CODE END 0 */
 
 /**
@@ -573,6 +630,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM3_Init();
   MX_I2C1_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   ESP32_SendCommand("AT+RST");  // Resetuj ESP32
@@ -585,10 +643,12 @@ int main(void)
   HAL_Delay(1000);
   HAL_UART_Receive_DMA(&huart1, UartBuffer, 1);
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_Delay(5);
+  HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Base_Start_IT(&htim3);
+
   InitCANFrames();
   InitAnalogIndicators();
-
 
   uint8_t increasing0 = 1, increasing1 = 1; // Flagi dla obu wiperów
   uint8_t reset_cmd = 0x06; // Komenda General Call Reset
@@ -610,8 +670,7 @@ HAL_Delay(10);
   {
 
 	 process_frame();
-	 speed = frame.speed * 3.6;
-     Set_PWM_Frequency(speed);
+	 Modify_Values();
 ////////////////////////
      uint16_t wiper0 = ReadWiper(&hi2c1, VOLATILE_WIPER_0); // Wiper 0
      uint16_t wiper1 = ReadWiper(&hi2c1, VOLATILE_WIPER_1); // Wiper 1
@@ -827,6 +886,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	     SendCANFrame(FRAME_316);  // Wysyła ramkę o ID 0x316
 	     SendCANFrame(FRAME_329);  // Wysyła ramkę o ID 0x329
 	     SendCANFrame(FRAME_545);  // Wysyła ramkę o ID 0x545
+	 }
+	 if (htim == &htim4)
+	 {
 	     SendCANFrame(FRAME_153);
 
 	     frame1F3_counter++;
@@ -834,11 +896,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	         SendCANFrame(FRAME_1F3);
 	         frame1F3_counter = 0;
 	     }
-
-
-
-	    // SendCANFrame(FRAME_1F3); 20 ms refresh rate Its sent out by the tractiuon control module DSC at a refresh rate of 20ms
-	    //AX and AY maybe stand for accelleration X and Y axis of the car.
 	 }
 	 if (htim == &htim3)
 	 {

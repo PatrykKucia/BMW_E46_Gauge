@@ -252,7 +252,7 @@ local DL_SPARE        = 2 ^ 11   -- N/A
 **Calculation:** `HEX * 0.390625`  
 
 ## Byte 5 - TPS_CAN  
-**Accelerator Pedal Position in % of PVS_MAX**  
+ **Accelerator Pedal Position in % of PVS_MAX**  
 **Calculation:** `HEX * 0.390625`  
 - **Init:** `0x00`  
 - **Min:** `0x01` (0%)  
@@ -358,6 +358,61 @@ local DL_SPARE        = 2 ^ 11   -- N/A
 | 0    | State Tire Pressure (MSS54 only) | **Tire Pressure Status** |
 | 1-6  | Unused                        | - |
 | 7    | Status Engine Oil Pressure Low | **Engine Oil Pressure Warning** |
+
+
+# ASC1 0x153  
+
+**Refresh Rate:** 10ms for ASC, 20ms for DSC  
+
+## Byte 0 - Bitfield  
+| Bit  | Name           | Description |
+|------|----------------|-------------|
+| 0    | LV_ASC_REQ     | **Demand for ASC intervention** |
+| 1    | LV_MSR_REQ     | **Demand for MSR intervention** |
+| 2    | LV_ASC_PASV    | **Status ASC passive (for EGS)** |
+| 3    | LV_ASC_SW_INT  | **ASC Switching influence** |
+| 4    | LV_BLS         | **Status Brake Light Switch** |
+| 5    | LV_BAS         | - |
+| 6    | LV_EBV         | - |
+| 7    | LV_ABS_LED     | - |
+
+## Byte 1 - Bitfield  
+| Bit  | Name           | Description |
+|------|----------------|-------------|
+| 0    | LV_ASC_REQ     | - |
+| 1    | LV_MSR_REQ     | - |
+| 2    | LV_ASC_PASV    | - |
+| 3-7  | VSS [0-4]      | **Vehicle Speed Signal** |
+
+## Byte 2 - VSS [MSB]  
+**Vehicle Speed Signal in Km/h**  
+**Calculation:** `((HEX[MSB] * 256) + HEX[LSB]) * 0.0625`  
+- **Min:** `0x160` (0 Km/h)  
+
+## Byte 3 - MD_IND_ASC  
+**Torque Intervention for ASC Function**  
+**Calculation:** `HEX * 0.390625`  
+- **Min:** `0x00` (0.0% max reduction)  
+- **Max:** `0xFF` (99.6094% no reduction)  
+
+## Byte 4 - MD_IND_MSR  
+**Torque Intervention for MSR Function**  
+**Calculation:** `HEX * 0.390625`  
+- **Min:** `0x00` (0.0% no engine torque increase)  
+- **Max:** `0xFF` (99.6094% max engine torque increase)  
+
+## Byte 5 - Unused  
+
+## Byte 6 - MD_IND_ASC_LM  
+**Torque Intervention for ASC LM Function**  
+**Calculation:** `HEX * 0.390625`  
+- **Min:** `0x00` (0.0% max reduction)  
+- **Max:** `0xFF` (99.6094% no reduction)  
+
+## Byte 7 - ASC ALIVE  
+**Alive Counter to Verify Message Integrity**  
+- **Range:** `0x00` - `0x0F`  
+
 
 ## Qt App
 
