@@ -16,6 +16,7 @@ Connecting e46 320D gauge to beamng drive
 11. [AT Comands](#AT_Comands)
 12. [K bus](#K_bus)
 13. [I2C](#I2C)
+14. [Servo](#Servo)
 ---
 
 ## Schematic
@@ -31,7 +32,7 @@ Connecting e46 320D gauge to beamng drive
 - [Wiring](https://www.bmwgm5.com/E46_IKE_Connections.htm)
 - [BMW WTD online](https://bmwteka.com/wds/en/e46/912c189d#)
 - [XSimulator.net](https://www.xsimulator.net/community/threads/tacho-controller-arduino-e46-canbus.5463/)
-- [e46 cluster controlled by stm32f4 via CAN bus](https://www.youtube.com/watch?v=_p4o54ZFcKQ&t=15s)
+- [e46 cluster controlled by stm32f4 via CAN bus](httpsW://www.youtube.com/watch?v=_p4o54ZFcKQ&t=15s)
 - [STM bluepill controling repo](https://github.com/chesapeakemotorwerks/bluepill_e46)
 - [MS4x.net](https://www.ms4x.net/index.php?title=Main_Page)
 - [KBUS ninja forum](https://curious.ninja/project/bmw-e46/e46-k-bus/arduino-bmw-i-bus-interface-technical-details/)
@@ -39,6 +40,8 @@ Connecting e46 320D gauge to beamng drive
 - [Qt tutorial forbot](https://forbot.pl/blog/kurs-qt-3-pierwsza-aplikacja-mobilna-na-androida-id35602)
 - [K-Bus repo](https://github.com/piersholt/wilhelm-docs)
 - [K bus arduino](https://www.youtube.com/watch?v=amk5FXwBos8&ab_channel=Chuechco93)
+- [github nice repo](https://github.com/NCPlyn/E46-Instrument-cluster-ESP8266)
+- [German forum](https://neuros-projekte.de/simulator/bmw-e46-arduino-simhub/)
 
 
 ---
@@ -655,3 +658,6 @@ void I2C_Scan()
 
 ```
 --- 
+
+## Servo 
+![alt text](image-7.png)

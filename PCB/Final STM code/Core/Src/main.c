@@ -59,6 +59,14 @@ typedef struct {
     int id; // optional - only if OutGauge ID is specified
 } FrameData;
 
+typedef struct {
+    TIM_HandleTypeDef *htim;
+    uint32_t channel;
+    uint16_t min_pulse;
+    uint16_t max_pulse;
+} Servo_t;
+
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -125,16 +133,10 @@ typedef struct {
 #define MIN_FREQ 25      // 100 Hz
 #define MAX_FREQ 1770  // 1770 kHz
 
-// MCP4662 defines
-#define MCP4662_ADDR_WRITE  (0x2C << 1)  // Adres I²C + bit zapisu (0)
-#define MCP4662_ADDR_READ   (0x2C << 1 | 1)  // Adres I²C + bit odczytu (1)
-#define TCON_REGISTER       0x04
-#define R_TOTAL       5000
-#define R_MIN         75
-#define R_STEP        19.3
 
-#define VOLATILE_WIPER_0  0x00
-#define VOLATILE_WIPER_1  0x01
+#define FUEL_MIN_DEG 45
+#define FUEL_MAX_DEG 115
+#define FUEL_MAX_RAW 1000
 
 /* USER CODE END PD */
 
@@ -153,7 +155,7 @@ uint8_t frameIndex = 0;              // Indeks do zapisu danych ramki
 bool frameReady = false;
 
 FrameData frame;
-
+Servo_t servo1;
 float speed = 0;
 
 bool isTurboActive;
@@ -222,7 +224,25 @@ uint16_t MCP4662_ReadTCON(I2C_HandleTypeDef *hi2c) {
 
     return tcon_value;
 }
+void Servo_SetAngle(Servo_t *servo, uint8_t angle) {
+    if (angle > 180) angle = 180;
 
+    uint32_t range = servo->max_pulse - servo->min_pulse;
+    uint32_t pulse = servo->min_pulse + ((uint32_t)angle * range) / 180;
+
+    __HAL_TIM_SET_COMPARE(servo->htim, servo->channel, pulse);
+}
+
+
+void Servo_Init(Servo_t *servo, TIM_HandleTypeDef *htim, uint32_t channel) {
+    servo->htim = htim;
+    servo->channel = channel;
+
+    // Typowe wartości dla serwa: 1ms - 2ms w trybie PWM 20ms (50Hz)
+    servo->min_pulse = 500;   // w mikrosekundach (np. 0 stopni)
+    servo->max_pulse = 2500;  // w mikrosekundach (np. 180 stopni)
+
+}
 int __io_putchar(int ch) //function used to print() in usart
 {
   if (ch == '\n') {
@@ -254,37 +274,6 @@ void Set_PWM_Frequency(uint16_t speed_kmh) {
     __HAL_TIM_SET_AUTORELOAD(&htim1, arr_value);
     //__HAL_TIM_SET_COUNTER(&htim1, 0);
 
-}
-uint16_t ReadWiper(I2C_HandleTypeDef *hi2c, uint8_t wiper_reg) {
-    uint8_t command_byte = (wiper_reg << 4) | 0x0C; // CC = 11 (Read)
-    uint8_t data[2] = {0};
-
-    // Wysłanie bajtu komendy
-    if (HAL_I2C_Master_Transmit(hi2c, (0x2C << 1), &command_byte, 1, HAL_MAX_DELAY) != HAL_OK) {
-        return 0xFFFF; // Kod błędu
-    }
-
-    // Odczyt 10-bitowego wiper value
-    if (HAL_I2C_Master_Receive(hi2c, (0x2C << 1) | 1, data, 2, HAL_MAX_DELAY) != HAL_OK) {
-        return 0xFFFF; // Kod błędu
-    }
-
-    uint16_t wiper_value = ((data[0] << 8) | data[1]) & 0x03FF; // 10-bitowy wynik
-    return wiper_value;
-}
-
-void wiper_command(I2C_HandleTypeDef *hi2c, uint8_t wiper, uint8_t command) {
-    uint8_t cmd;
-
-    if (wiper == 0) {
-        cmd = command;  // Dla Wiper 0 (komendy 0x04 lub 0x08)
-    } else if (wiper == 1) {
-        cmd = command | 0x10; // Dodajemy bit 4, aby przełączyć na Wiper 1
-    } else {
-        return; // Nieprawidłowy wybór wipera
-    }
-
-    HAL_I2C_Master_Transmit(hi2c, MCP4662_ADDR_WRITE, &cmd, 1, HAL_MAX_DELAY);
 }
 
 void ESP32_SendCommand(const char* command) {
@@ -360,27 +349,7 @@ void InitAnalogIndicators(){
 	 modify_can_frame_byte(FRAME_1F3, 5, 0x00);
 	 modify_can_frame_byte(FRAME_1F3, 6, 0x00);
 	 modify_can_frame_byte(FRAME_1F3, 7, 0x00);
-
-
 }
-uint16_t calculate_fuel_consumption(float throttle, uint8_t gear) {
-    if (throttle <= 0.0f) return 0x0000; // Brak spalania, jeśli pedał gazu nie jest wciśnięty
-    if (gear == 0) return 0xFFFF; // Maksymalne spalanie na biegu jałowym
-
-    float max_consumption = 20.0f; // Maksymalne spalanie w l/100 km
-    float gear_factor = 1.0f + (gear - 1) * 0.5f; // Im wyższy bieg, tym niższe spalanie
-    float fuel_consumption = (throttle * max_consumption);// / gear_factor;
-
-    // Ograniczenie spalania do maksimum
-    if (fuel_consumption > max_consumption) {
-        fuel_consumption = max_consumption;
-    }
-
-    // Skalowanie do 0xFFFF
-    uint16_t fuel_scaled = (uint16_t)((fuel_consumption / max_consumption) * 0xFFFF);
-    return fuel_scaled;
-}
-
 
 void parse_frame(uint8_t *buffer) {
     uint8_t offset = 0;
@@ -458,21 +427,10 @@ void parse_frame(uint8_t *buffer) {
     isLeftSignal = frame.showLights & DL_SIGNAL_L;
     isRightSignal = frame.showLights & DL_SIGNAL_R;
 
-
-
     HAL_GPIO_TogglePin(D1_GPIO_Port, D1_Pin);  // Diagnostyka
-//	if (frame.throttle == 0x00) frame.throttle = 0x01; // Minimalna wartość to 0x01
-//	 	 modify_can_frame_byte(FRAME_329, 5, frame.throttle * 256.0f);
-//
-//    uint16_t fuel_value = calculate_fuel_consumption(frame.throttle, frame.gear);
-//    uint8_t fuel_lsb = fuel_value & 0xFF;
-//    uint8_t fuel_msb = (fuel_value >> 8) & 0xFF;
-//
-//    modify_can_frame_byte(FRAME_545, 1, fuel_lsb);
-//    modify_can_frame_byte(FRAME_545, 2, fuel_msb);
 }
-void Modify_Values(){
-	speed = frame.speed * 3.6;
+void Modify_Speed_RPM(){
+speed = frame.speed * 3.6;
     Set_PWM_Frequency(speed);
 
     uint16_t hexValue_RPM = (uint16_t)(frame.rpm / 0.15625);  // Rzutowanie na uint16_t
@@ -484,6 +442,9 @@ void Modify_Values(){
     modify_can_frame_byte(FRAME_316, 2, lsb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_316, 3, msb);  // Modyfikacja bajtu w ramce CAN
     modify_can_frame_byte(FRAME_329, 1, hexValue_temperature);
+}
+void Modify_Values(){
+
 
     if(frame.engTemp >= 129)
     {
@@ -494,13 +455,6 @@ void Modify_Values(){
     	modify_can_frame_bit(FRAME_545, 3, 3, 0);
     }
 
-//    if (mpgloop == 0xFFFF) {
-//        mpgloop = 0x0;
-//    } else {
-//        mpgloop += frame.rpm / 130;
-//    }
-//    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);  // Lower byte of mpgloop
-//    modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);    // Higher byte of mpgloop
     if (mpgloop == 0xFFFF) {
         mpgloop = 0x0;
     } else {
@@ -530,14 +484,11 @@ void Modify_Values(){
         new_mpgloop = (new_mpgloop < 0) ? 0 : new_mpgloop;
         mpgloop = (new_mpgloop > 0xFFFF) ? 0xFFFF : (uint16_t)new_mpgloop;
 
-        prev_rpm = frame.rpm;
     }
 
-    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);
+    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);//bootleneck - it slows RPM gauge a lot
     modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);
 
-    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);
-    modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);
     if(isTractionCtrl)
     {
 	 modify_can_frame_byte(FRAME_153, 0, 0x06); // brak błędu //06 //ff to turn on
@@ -548,7 +499,34 @@ void Modify_Values(){
    	 modify_can_frame_byte(FRAME_153, 0, 0x00); // brak błędu //06 //ff to turn on
    	 modify_can_frame_byte(FRAME_153, 1, 0x00); // brak aktywnej interwencji DSC
     }
-    }
+
+	// Zakładamy: frame.fuel ∈ [0.0, 1.0]
+	   float fuel = frame.fuel;
+
+	   // Ogranicz na wszelki wypadek (gdyby coś wyszło poza zakres)
+	   if (fuel < 0.0f) fuel = 0.0f;
+	   if (fuel > 1.0f) fuel = 1.0f;
+
+	   // Przelicz fuel na kąt z zakresu 45–115
+	   float angle = 45.0f + fuel * (115.0f - 45.0f);  // czyli 45 + fuel * 70
+
+	   Servo_SetAngle(&servo1, angle);
+
+//	    float fuel = frame.fuel;
+//
+//	    // Ogranicz na wszelki wypadek (gdyby coś wyszło poza zakres)
+//	    if (fuel < 0.0f) fuel = 0.0f;
+//	    if (fuel > 1.0f) fuel = 1.0f;
+//
+//	    // Przelicz fuel na kąt z zakresu 45–115
+//	    float angle = 45.0f + fuel * 70.0f;  // czyli 45 + fuel * (115 - 45)
+//
+//
+//	    if (fabs(angle - lastAngle) >= angleDelta) {
+//	        Servo_SetAngle(&servo1, angle);
+//	        lastAngle = angle;
+//	    }
+}
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
     uint8_t checksum = 0;
@@ -631,8 +609,10 @@ int main(void)
   MX_TIM3_Init();
   MX_I2C1_Init();
   MX_TIM4_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim5, TIM_CHANNEL_1);
   ESP32_SendCommand("AT+RST");  // Resetuj ESP32
  // HAL_Delay(1000);
  // ESP32_SendCommand("AT+CWMODE=1");  // Ustaw tryb stacji (klient Wi-Fi)
@@ -646,21 +626,14 @@ int main(void)
   HAL_Delay(5);
   HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Base_Start_IT(&htim3);
-
+  Servo_Init(&servo1, &htim5, TIM_CHANNEL_1);
   InitCANFrames();
   InitAnalogIndicators();
-
-  uint8_t increasing0 = 1, increasing1 = 1; // Flagi dla obu wiperów
-  uint8_t reset_cmd = 0x06; // Komenda General Call Reset
-//HAL_I2C_Master_Transmit(&hi2c1, 0x00, &reset_cmd, 1, HAL_MAX_DELAY);
-HAL_Delay(10);
-SetTCON(&hi2c1, 0xbb );  // Podłącza piny A, W, B dla obu wiperów  //0x34 //0xBB - HW ON -A OFF  //33 - HW OFF
-HAL_Delay(10);
+  Servo_SetAngle(&servo1, 0);
 
 
-
-   // uint8_t set_wiper[2] = {0x00, 0xc8}; // Środkowa wartość (128)
-  //  HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR_WRITE, set_wiper, 2, HAL_MAX_DELAY);
+//int angle = 0;
+//int direction = 1; // 1 = w górę, -1 = w dół
 
   /* USER CODE END 2 */
 
@@ -668,119 +641,20 @@ HAL_Delay(10);
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+//	Servo_SetAngle(&servo1, angle);
+//	          angle += direction;
+//
+//	          if (angle >= 180) {
+//	              angle = 180;
+//	              direction = -1;
+//	          } else if (angle <= 0) {
+//	              angle = 0;
+//	              direction = 1;
+//	          }
+//	          HAL_Delay(50);
 	 process_frame();
+	 Modify_Speed_RPM();
 	 Modify_Values();
-////////////////////////
-     uint16_t wiper0 = ReadWiper(&hi2c1, VOLATILE_WIPER_0); // Wiper 0
-     uint16_t wiper1 = ReadWiper(&hi2c1, VOLATILE_WIPER_1); // Wiper 1
-     uint16_t tcon = MCP4662_ReadTCON(&hi2c1);  // TCON
-
-//     printf("Wiper 0 value: %d\n", wiper0);
-//     printf("Wiper 1 value: %d\n", wiper1);
-//     printf("TCON: 0x%03X\n", tcon);
-
-     //WriteWiper(&hi2c1, VOLATILE_WIPER_0, 0x80);
-     //WriteWiper(&hi2c1, VOLATILE_WIPER_1, 0x80);
-//
-//      Interpretacja bitów:
-         uint8_t GCEN = (tcon >> 8) & 0x01;  // Bit 8 (GCEN)
-         uint8_t R1HW = (tcon >> 7) & 0x01;  // Bit 7
-         uint8_t R1A  = (tcon >> 6) & 0x01;  // Bit 6
-         uint8_t R1W  = (tcon >> 5) & 0x01;  // Bit 5
-         uint8_t R1B  = (tcon >> 4) & 0x01;  // Bit 4
-         uint8_t R0HW = (tcon >> 3) & 0x01;  // Bit 3
-         uint8_t R0A  = (tcon >> 2) & 0x01;  // Bit 2
-         uint8_t R0W  = (tcon >> 1) & 0x01;  // Bit 1
-         uint8_t R0B  = (tcon >> 0) & 0x01;  // Bit 0
-//
-//         printf("TCON: 0x%04X\n", tcon);
-//         printf("GCEN: %d\n", GCEN);
-//         printf("R1HW: %d, R1A: %d, R1W: %d, R1B: %d\n", R1HW, R1A, R1W, R1B);
-//         printf("R0HW: %d, R0A: %d, R0W: %d, R0B: %d\n", R0HW, R0A, R0W, R0B);
-
-//         wiper_command(&hi2c1, 0, 0x44);
-//
-//         // Przykład: Włączenie GCEN i ustawienie R1A=1, R0W=1
-//         uint16_t all_ones_tcon = 0x01FF;
-//         uint16_t new_tcon_value = 0x0181;
- //        MCP4662_WriteTCON(&hi2c1, new_tcon_value);
-//////////////////////////////
-
-//
-////     uint8_t enable_tcon[2] = {0x04, 0b00001100}; // Włącz wszystkie połączenia
-////     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, enable_tcon, 2, HAL_MAX_DELAY);
-//
-//     uint8_t enable_tcon[2] = {0x04, 0x1FF};  // Wszystkie połączenia aktywne
-//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, enable_tcon, 2, HAL_MAX_DELAY);
-//
-//
-//     uint8_t read_tcon[1] = {0x04};
-//     uint8_t tcon_value[2] = {0};
-//
-//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, read_tcon, 1, HAL_MAX_DELAY);
-//     HAL_I2C_Master_Receive(&hi2c1, MCP4662_ADDR, tcon_value, 2, HAL_MAX_DELAY);
-//
-//     uint16_t tcon = (tcon_value[0] << 8 | tcon_value[1]) & 0x1FF;
-//     printf("TCON value: 0x%03X\n", tcon);
-
-//     uint8_t save_to_eeprom[2] = {0x20, 0x80}; // Zapisz do EEPROM
-//     HAL_I2C_Master_Transmit(&hi2c1, MCP4662_ADDR, save_to_eeprom, 2, HAL_MAX_DELAY);
-
-////////////////////////////////
-//      {
-//         // *** WIPER 0 ***
-//         if (increasing0) {
-//             wiper_command(&hi2c1, 0, 0x04); // Inkrementacja Wiper 0
-//             wiper0++;
-//             if (wiper0 >= 256) increasing0 = 0;
-//         } else {
-//             wiper_command(&hi2c1, 0, 0x08); // Dekrementacja Wiper 0
-//             wiper0--;
-//             if (wiper0 == 0) increasing0 = 1;
-//         }
-//
-//         // *** WIPER 1 ***
-//         if (increasing1) {
-//             wiper_command(&hi2c1, 1, 0x04); // Inkrementacja Wiper 1
-//             wiper1++;
-//             if (wiper1 >= 256) increasing1 = 0;
-//         } else {
-//             wiper_command(&hi2c1, 1, 0x08); // Dekrementacja Wiper 1
-//             wiper1--;
-//             if (wiper1 == 0) increasing1 = 1;
-//
-//         }
-//
-//
-//         //HAL_Delay(50); // Czekaj dla stabilności
-//     }
-//     HAL_Delay(250); // Opóźnienie dla stabilnego działania
-/////////////////////////////////////
-
-         uint16_t target0 = (uint16_t)(0.01 * 255);//0.1 - 570ohm/off  0=1/4   0.01= ~half 0.03-half
-         uint16_t target1 = (uint16_t)(0.01 * 255);
-
-             if (wiper0 < target0) {
-                 wiper_command(&hi2c1, 0, 0x04); // Inkrementacja
-                 wiper0++;
-             } else if (wiper0 > target0) {
-                 wiper_command(&hi2c1, 0, 0x08); // Dekrementacja
-                 wiper0--;
-             }
-
-             if (wiper1 < target1) {
-                 wiper_command(&hi2c1, 1, 0x04); // Inkrementacja
-                 wiper1++;
-             } else if (wiper1 > target1) {
-                 wiper_command(&hi2c1, 1, 0x08); // Dekrementacja
-                 wiper1--;
-             }
-
-//////////////////////////////////////
-
-   //  I2C_Scan();
-     //SetResistance(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
