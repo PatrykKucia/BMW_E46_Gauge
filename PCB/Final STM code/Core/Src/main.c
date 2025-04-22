@@ -225,7 +225,8 @@ uint16_t MCP4662_ReadTCON(I2C_HandleTypeDef *hi2c) {
     return tcon_value;
 }
 void Servo_SetAngle(Servo_t *servo, uint8_t angle) {
-    if (angle > 180) angle = 180;
+    if (angle >= 105) angle = 105;
+    if (angle <= 10) angle = 10;
 
     uint32_t range = servo->max_pulse - servo->min_pulse;
     uint32_t pulse = servo->min_pulse + ((uint32_t)angle * range) / 180;
@@ -354,64 +355,7 @@ void InitAnalogIndicators(){
 void parse_frame(uint8_t *buffer) {
     uint8_t offset = 0;
 
-    memcpy(&frame.time, &buffer[offset], sizeof(frame.time));
-    offset += sizeof(frame.time);
-
-    memcpy(&frame.car, &buffer[offset], sizeof(frame.car));
-    offset += sizeof(frame.car);
-
-    memcpy(&frame.flags, &buffer[offset], sizeof(frame.flags));
-    offset += sizeof(frame.flags);
-
-    memcpy(&frame.gear, &buffer[offset], sizeof(frame.gear));
-    offset += sizeof(frame.gear);
-
-    memcpy(&frame.plid, &buffer[offset], sizeof(frame.plid));
-    offset += sizeof(frame.plid);
-
-    memcpy(&frame.speed, &buffer[offset], sizeof(frame.speed));
-    offset += sizeof(frame.speed);
-
-    memcpy(&frame.rpm, &buffer[offset], sizeof(frame.rpm));
-    offset += sizeof(frame.rpm);
-
-    memcpy(&frame.turbo, &buffer[offset], sizeof(frame.turbo));
-    offset += sizeof(frame.turbo);
-
-    memcpy(&frame.engTemp, &buffer[offset], sizeof(frame.engTemp));
-    offset += sizeof(frame.engTemp);
-
-    memcpy(&frame.fuel, &buffer[offset], sizeof(frame.fuel));
-    offset += sizeof(frame.fuel);
-
-    memcpy(&frame.oilPressure, &buffer[offset], sizeof(frame.oilPressure));
-    offset += sizeof(frame.oilPressure);
-
-    memcpy(&frame.oilTemp, &buffer[offset], sizeof(frame.oilTemp));
-    offset += sizeof(frame.oilTemp);
-
-    memcpy(&frame.dashLights, &buffer[offset], sizeof(frame.dashLights));
-    offset += sizeof(frame.dashLights);
-
-    memcpy(&frame.showLights, &buffer[offset], sizeof(frame.showLights));
-    offset += sizeof(frame.showLights);
-
-    memcpy(&frame.throttle, &buffer[offset], sizeof(frame.throttle));
-    offset += sizeof(frame.throttle);
-
-    memcpy(&frame.brake, &buffer[offset], sizeof(frame.brake));
-    offset += sizeof(frame.brake);
-
-    memcpy(&frame.clutch, &buffer[offset], sizeof(frame.clutch));
-    offset += sizeof(frame.clutch);
-
-    memcpy(&frame.display1, &buffer[offset], sizeof(frame.display1));
-    offset += sizeof(frame.display1);
-
-    memcpy(&frame.display2, &buffer[offset], sizeof(frame.display2));
-    offset += sizeof(frame.display2);
-
-    memcpy(&frame.id, &buffer[offset], sizeof(frame.id));
+    memcpy(&frame, buffer, sizeof(FrameData));
 
     isTurboActive = frame.flags & OG_TURBO;
     isMetric = frame.flags & OG_KM;
@@ -464,7 +408,7 @@ void Modify_Values(){
         // Część dynamiczna - reaguje na zmiany obrotów
         int16_t dynamic_component = 0;
         if (rpm_delta > 0) {
-            dynamic_component = rpm_delta * 3; // Silna reakcja na przyspieszenie
+        	dynamic_component = (rpm_delta << 1) + rpm_delta; // zamiast * 3 // Silna reakcja na przyspieszenie
         } else if (rpm_delta < 0) {
             dynamic_component = rpm_delta; // Słabsza reakcja na zwalnianie
         }
@@ -476,9 +420,11 @@ void Modify_Values(){
         int32_t new_mpgloop = mpgloop + dynamic_component + static_component;
 
         // Jeśli pedał gazu puszczony - szybkie zmniejszanie
-        if (frame.throttle <= 0.2) {
-            new_mpgloop = 0; // Szybkie zmniejszanie new_mpgloop * 0.7
+        uint8_t throttle_pct = (uint8_t)(frame.throttle * 100.0f);
+        if (throttle_pct <= 20) {
+            new_mpgloop = 0;
         }
+
 
         // Ograniczenia wartości
         new_mpgloop = (new_mpgloop < 0) ? 0 : new_mpgloop;
@@ -486,8 +432,13 @@ void Modify_Values(){
 
     }
 
-    modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);//bootleneck - it slows RPM gauge a lot
-    modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);
+//    static uint8_t can_update_counter = 0;
+//    if (++can_update_counter >= 2) {
+//        can_update_counter = 0;
+//        modify_can_frame_byte(FRAME_545, 1, mpgloop & 0xFF);
+//        modify_can_frame_byte(FRAME_545, 2, mpgloop >> 8);
+//    }
+
 
     if(isTractionCtrl)
     {
@@ -500,32 +451,22 @@ void Modify_Values(){
    	 modify_can_frame_byte(FRAME_153, 1, 0x00); // brak aktywnej interwencji DSC
     }
 
-	// Zakładamy: frame.fuel ∈ [0.0, 1.0]
-	   float fuel = frame.fuel;
-
-	   // Ogranicz na wszelki wypadek (gdyby coś wyszło poza zakres)
-	   if (fuel < 0.0f) fuel = 0.0f;
-	   if (fuel > 1.0f) fuel = 1.0f;
-
-	   // Przelicz fuel na kąt z zakresu 45–115
-	   float angle = 45.0f + fuel * (115.0f - 45.0f);  // czyli 45 + fuel * 70
-
-	   Servo_SetAngle(&servo1, angle);
-
-//	    float fuel = frame.fuel;
+//	   float fuel = frame.fuel;
 //
-//	    // Ogranicz na wszelki wypadek (gdyby coś wyszło poza zakres)
-//	    if (fuel < 0.0f) fuel = 0.0f;
-//	    if (fuel > 1.0f) fuel = 1.0f;
+//	   // Ogranicz na wszelki wypadek (gdyby coś wyszło poza zakres)
+//	   if (fuel < 0.0f) fuel = 0.0f;
+//	   if (fuel > 1.0f) fuel = 1.0f;
 //
-//	    // Przelicz fuel na kąt z zakresu 45–115
-//	    float angle = 45.0f + fuel * 70.0f;  // czyli 45 + fuel * (115 - 45)
+//	   // Przelicz fuel na kąt z zakresu 45–115
+//	   float angle = 45.0f + fuel * (115.0f - 45.0f);  // czyli 45 + fuel * 70
 //
-//
-//	    if (fabs(angle - lastAngle) >= angleDelta) {
-//	        Servo_SetAngle(&servo1, angle);
-//	        lastAngle = angle;
-//	    }
+//	   Servo_SetAngle(&servo1, angle);
+
+    uint16_t fuel_int = (uint16_t)(frame.fuel * 65535.0f + 0.5f);
+    uint8_t angle = 105 - ((fuel_int * 95) >> 16); // 95 = 105 - 10
+
+
+    Servo_SetAngle(&servo1, angle);
 }
 
 uint8_t calculate_checksum(uint8_t *data, uint8_t length) {
@@ -629,8 +570,7 @@ int main(void)
   Servo_Init(&servo1, &htim5, TIM_CHANNEL_1);
   InitCANFrames();
   InitAnalogIndicators();
-  Servo_SetAngle(&servo1, 0);
-
+  Servo_SetAngle(&servo1,10);
 
 //int angle = 0;
 //int direction = 1; // 1 = w górę, -1 = w dół
@@ -652,6 +592,7 @@ int main(void)
 //	              direction = 1;
 //	          }
 //	          HAL_Delay(50);
+
 	 process_frame();
 	 Modify_Speed_RPM();
 	 Modify_Values();
